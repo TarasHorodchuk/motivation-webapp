@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Адмін-панель</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Адмін-панель 👨‍🏫</h1>
+
+    <div class="card">
+      <h2>Почати урок</h2>
+      <select id="class-select">
+        <option value="">Обери клас</option>
+        <option value="7.1">7.1</option>
+        <option value="7.2">7.2</option>
+        <!-- Додай свої класи -->
+      </select>
+      <select id="subject-select">
+        <option value="">Обери предмет</option>
+        <option value="Алгебра">Алгебра</option>
+        <option value="Геометрія">Геометрія</option>
+      </select>
+      <button class="btn" onclick="startLesson()">Почати урок</button>
+    </div>
+
+    <div class="card" id="lesson-section" style="display:none;">
+      <h2>Оцінювання уроку</h2>
+      <div id="lesson-content"></div>
+    </div>
+
+    <div class="card">
+      <h2>Критерії</h2>
+      <div id="criteria-list">Завантажуємо...</div>
+      <input type="text" id="new-crit-name" placeholder="Назва критерію">
+      <input type="number" id="new-crit-weight" placeholder="Вага (монет)" step="0.5">
+      <button class="btn" onclick="addCriterion()">Додати критерій</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+
+    loadAdminData();
+
+    function startLesson() {
+      const className = document.getElementById("class-select").value;
+      const subjectName = document.getElementById("subject-select").value;
+      if (!className || !subjectName) {
+        tg.showAlert("Обери клас і предмет");
+        return;
+      }
+
+      // Тут буде запит до API бота для початку уроку
+      tg.showAlert(`Урок ${subjectName} для класу ${className} почато! (Поки тест)`);
+    }
+
+    function addCriterion() {
+      const name = document.getElementById("new-crit-name").value;
+      const weight = document.getElementById("new-crit-weight").value;
+      if (!name || !weight) {
+        tg.showAlert("Заповни назву і вагу");
+        return;
+      }
+
+      // Тут буде запит до API бота для додавання критерію
+      tg.showAlert(`Критерій "${name}" з вагою ${weight} додано! (Поки тест)`);
+    }
+
+    function loadAdminData() {
+      // Тут буде завантаження класів, учнів, критеріїв з API бота
+      document.getElementById("criteria-list").innerHTML = `
+        <p>• Вчасний прихід — 5 монет</p>
+        <p>• Активність — 10 монет</p>
+      `;
+    }
+
+    tg.MainButton.setText("Оновити").show();
+    tg.MainButton.onClick(() => loadAdminData());
+  </script>
+</body>
+</html>

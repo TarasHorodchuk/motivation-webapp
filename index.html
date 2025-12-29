@@ -5,39 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Мотивація Математика</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f0f2f5; }
-    #loading { font-size: 1.5em; color: #666; }
-    #debug { margin-top: 20px; color: red; font-size: 1.2em; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 { font-size: 2.5em; }
+    p { font-size: 1.5em; }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div id="loading">Завантаження...</div>
-  <div id="debug"></div>
+  <h1>Web App працює! 🎉</h1>
+  <p>Привіт від Grok!</p>
+  <p id="user-info">Завантаження даних...</p>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
     tg.ready();
 
-    // Діагностика
-    const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get('role');
-    const fullUrl = window.location.href;
-
-    document.getElementById("debug").innerHTML = `
-      <p><strong>Повний URL:</strong> ${fullUrl}</p>
-      <p><strong>Параметр role:</strong> ${role || 'НЕМАЄ (немає ?role=...)'}</p>
-      <p><strong>Користувач Telegram:</strong> ${tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : 'немає даних'}</p>
-    `;
-
-    if (role === 'admin') {
-      window.location.href = 'admin.html';
-    } else if (role === 'student') {
-      window.location.href = 'student.html';
+    const user = tg.initDataUnsafe.user;
+    if (user) {
+      document.getElementById("user-info").innerText =
+        `Привіт, ${user.first_name || 'користувач'}! Твій ID: ${user.id}`;
     } else {
-      document.getElementById("loading").innerText = "Помилка: не передано роль (role=admin або role=student)";
+      document.getElementById("user-info").innerText = "Не вдалося отримати дані користувача";
     }
+
+    tg.MainButton.setText("Закрити").show();
+    tg.MainButton.onClick(() => tg.close());
   </script>
 </body>
 </html>

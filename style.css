@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-  max-width: 480px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 10px;
 }
@@ -24,75 +24,40 @@ body {
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 1.8em;
   margin: 0 0 10px 0;
   text-align: center;
 }
 
 h2 {
-  font-size: 1.5em;
+  font-size: 1.4em;
   margin: 0 0 15px 0;
   text-align: center;
 }
 
 .balance {
-  font-size: 3em;
+  font-size: 2.8em;
   font-weight: bold;
   text-align: center;
   margin: 20px 0;
 }
 
-.btn {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-  color: white;
-  border: none;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 50px;
-  font-size: 1.1em;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
-  width: 100%;
-}
-
-.btn:active {
-  transform: translateY(2px);
-}
-
-/* Календар — адаптивний */
-#calendar-container {
-  margin: 20px 0;
-}
-
-.month-card {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 15px;
-  padding: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.month-title {
-  font-size: 1.4em;
-  margin-bottom: 10px;
-  text-align: center;
+/* Календар — повністю адаптивний */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin: 15px 0;
 }
 
 .calendar-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 8px;
   font-weight: bold;
   text-align: center;
   font-size: 0.9em;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .calendar-day {
@@ -137,6 +102,24 @@ h2 {
   font-size: 1.1em;
 }
 
+.btn {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+  color: white;
+  border: none;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 50px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+  width: 100%;
+}
+
+.btn:active {
+  transform: translateY(2px);
+}
+
 .loading {
   font-size: 1.5em;
   text-align: center;
@@ -152,7 +135,7 @@ h2 {
     padding: 15px;
   }
   h1 {
-    font-size: 1.8em;
+    font-size: 1.6em;
   }
   .balance {
     font-size: 2.5em;

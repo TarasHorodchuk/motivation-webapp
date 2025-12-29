@@ -1,84 +1,89 @@
 const tg = window.Telegram.WebApp;
+tg.expand();
+tg.ready();
 
-// Функція для безпечного запиту до API бота
-async function apiRequest(endpoint, options = {}) {
-  const initData = tg.initData;
-  const response = await fetch(`/api${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData, ...options })
-  });
-  return response.json();
-}
+// URL твого бота (Flask API) — заміни на свій ngrok або Render URL
+const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← ТУТ ТВІЙ NGROK АБО RENDER URL
 
-// Функція для завантаження профілю учня
-async function loadStudentProfile() {
+// Функція для запиту до API бота
+async function apiRequest(endpoint, body = {}) {
   try {
-    const data = await apiRequest('/student/profile');
-    if (data.error) {
-      tg.showAlert(data.error);
-      return;
-    }
-
-    document.getElementById("greeting").innerText = `Привіт, ${data.first_name}!`;
-    document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-    document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
-
-    const subjectsDiv = document.getElementById("subjects-balance");
-    subjectsDiv.innerHTML = data.subjects.map(s => `
-      <p>• ${s.name}: <strong>${s.coins} 🪙</strong></p>
-    `).join('');
-
-    // Завантажуємо календар
-    const calendarDiv = document.getElementById("calendar");
-    const builder = new InlineKeyboardBuilder();
-    data.lesson_dates.forEach(day => {
-      builder.button(text=day.date, callback_data=`detail_${day.date}`);
+    const response = await fetch(`${BOT_API_URL}/api${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData, ...body })
     });
-    builder.adjust(1);
-    calendarDiv.innerHTML = "<h3>Дати уроків:</h3>" + builder.as_markup().inline_keyboard.map(row =>
-      row.map(btn => `<button onclick="showDayDetail('${btn.callback_data}')">${btn.text}</button>`).join('')
-    ).join('<br>');
-
+    return await response.json();
   } catch (err) {
-    tg.showAlert("Помилка завантаження профілю");
+    console.error("API помилка:", err);
+    tg.showAlert("Помилка з'єднання з ботом");
+    return { error: "Помилка з'єднання" };
   }
 }
 
-// Функція для показу деталі за день
-function showDayDetail(callback_data) {
-  // Тут буде запит до API бота для деталі за день
-  tg.showAlert(`Деталі за день: ${callback_data} (поки тест)`);
+// Завантаження профілю учня
+async function loadStudentProfile() {
+  const data = await apiRequest('/student/profile');
+
+  if (data.error) {
+    document.getElementById("content").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
+    return;
+  }
+
+  // Заповнюємо дані
+  document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
+  document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+  document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+
+  // Баланс по предметах
+  const subjectsDiv = document.getElementById("subjects-balance");
+  subjectsDiv.innerHTML = data.subjects.map(s => `
+    <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+  `).join('');
+
+  // Календар
+  const calendarDiv = document.getElementById("calendar");
+  if (data.calendar.length === 0) {
+    calendarDiv.innerHTML = "<p>Уроків ще не було</p>";
+  } else {
+    calendarDiv.innerHTML = "<h3>Останні уроки:</h3>" + data.calendar.map(day => `
+      <p><strong>${day.date}</strong> (${day.subject}): +${day.total} 🪙</p>
+    `).join('');
+  }
 }
 
-// Функція для покупки
+// Покупка +1 бал
 async function buyBonus(bonus) {
   const cost = bonus === 1 ? 10 : 20;
-  try {
-    const data = await apiRequest('/student/buy', { bonus, cost });
-    if (data.success) {
-      tg.showAlert(`+${bonus} бали куплено за ${cost} монет!`);
-      loadStudentProfile();  // Оновлюємо баланс
-    } else {
-      tg.showAlert(data.error || "Недостатньо монет");
-    }
-  } catch (err) {
-    tg.showAlert("Помилка покупки");
+  const confirm = confirm(`Купити +${bonus} бал(и) за ${cost} монет?`);
+  if (!confirm) return;
+
+  const data = await apiRequest('/student/buy_bonus', { bonus, cost });
+  if (data.success) {
+    tg.showAlert(data.success);
+    loadStudentProfile();  // Оновлюємо профіль
+  } else {
+    tg.showAlert(data.error || "Недостатньо монет");
   }
 }
 
-// Функція для зняття зауваження
+// Зняття зауваження
 async function buyRemoveWarning() {
-  const cost = 8;
-  try {
-    const data = await apiRequest('/student/remove_warning', { cost });
-    if (data.success) {
-      tg.showAlert("Зауваження знято за 8 монет!");
-      loadStudentProfile();
-    } else {
-      tg.showAlert(data.error || "Недостатньо монет");
-    }
-  } catch (err) {
-    tg.showAlert("Помилка зняття зауваження");
+  const confirm = confirm("Зняти зауваження за 8 монет?");
+  if (!confirm) return;
+
+  const data = await apiRequest('/student/remove_warning');
+  if (data.success) {
+    tg.showAlert(data.success);
+    loadStudentProfile();
+  } else {
+    tg.showAlert(data.error || "Недостатньо монет");
   }
 }
+
+// Головна кнопка — оновити
+tg.MainButton.setText("Оновити профіль").show();
+tg.MainButton.onClick(loadStudentProfile);
+
+// Завантажуємо профіль при відкритті
+loadStudentProfile();

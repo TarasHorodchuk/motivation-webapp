@@ -78,9 +78,9 @@
               class="px-7 py-3 rounded-3xl font-medium text-base transition-all transform hover:scale-105">
         Класи та учні
       </button>
-      <button @click="activeTab = 'subjects'" :class="{'glass shadow-xl ring-4 ring-purple-500 ring-opacity-40': activeTab === 'subjects'}"
+      <button @click="activeTab = 'criteria'" :class="{'glass shadow-xl ring-4 ring-purple-500 ring-opacity-40': activeTab === 'criteria'}"
               class="px-7 py-3 rounded-3xl font-medium text-base transition-all transform hover:scale-105">
-        Предмети
+        Критерії оцінювання
       </button>
       <button @click="activeTab = 'search'" :class="{'glass shadow-xl ring-4 ring-purple-500 ring-opacity-40': activeTab === 'search'}"
               class="px-7 py-3 rounded-3xl font-medium text-base transition-all transform hover:scale-105">
@@ -152,14 +152,39 @@
       </div>
     </div>
 
-    <!-- 2. Предмети -->
-    <div x-show="activeTab === 'subjects'" class="glass p-10 text-center animate-fade-in">
-      <i data-lucide="book-open" class="w-20 h-20 mx-auto mb-5 opacity-50"></i>
-      <p class="text-xl mb-4">Предмети додаються автоматично:</p>
-      <div class="space-y-3 text-lg">
-        <p>• 5–6 класи → <strong class="text-green-300">Математика</strong></p>
-        <p>• 7–11 класи → <strong class="text-purple-300">Алгебра</strong> та <strong class="text-pink-300">Геометрія</strong></p>
+    <!-- 2. Критерії оцінювання -->
+    <div x-show="activeTab === 'criteria'" class="glass p-8 animate-fade-in">
+      <h2 class="text-2xl font-semibold mb-8 flex items-center gap-3">
+        <i data-lucide="check-square" class="w-8 h-8 text-green-400"></i>
+        Критерії оцінювання
+      </h2>
+
+      <div class="space-y-6">
+        <template x-for="criterion in criteria" :key="criterion.id">
+          <div class="glass p-6 rounded-3xl flex items-center justify-between hover:ring-4 hover:ring-purple-500 hover:ring-opacity-30 transition-all">
+            <div class="flex items-center gap-4">
+              <i data-lucide="award" class="w-8 h-8 text-yellow-300"></i>
+              <div>
+                <p class="text-xl font-semibold" x-text="criterion.name"></p>
+                <p class="text-lg opacity-80" x-text="criterion.weight + ' 🪙 за виконання'"></p>
+              </div>
+            </div>
+            <button @click="deleteCriterion(criterion.id)" class="text-red-400 hover:text-red-300 transition">
+              <i data-lucide="trash-2" class="w-7 h-7"></i>
+            </button>
+          </div>
+        </template>
+
+        <div x-show="criteria.length === 0" class="text-center opacity-60 py-12">
+          <i data-lucide="alert-circle" class="w-20 h-20 mx-auto mb-4"></i>
+          <p class="text-lg">Критеріїв ще немає. Додай перший!</p>
+        </div>
       </div>
+
+      <button @click="openAddCriterionModal()" class="w-full mt-10 btn-primary text-lg py-5 flex items-center justify-center gap-3 shadow-lg">
+        <i data-lucide="plus-circle" class="w-7 h-7"></i>
+        Додати новий критерій
+      </button>
     </div>
 
     <!-- 3. Пошук учня -->
@@ -226,7 +251,7 @@
       </div>
     </div>
 
-    <!-- 4. Почати пару — з зеленими галочками та динамічним оновленням іконок -->
+    <!-- 4. Почати пару -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -322,6 +347,18 @@
         </div>
       </div>
     </div>
+
+    <div x-show="modals.addCriterion" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" x-transition>
+      <div class="glass p-8 rounded-3xl max-w-md w-full">
+        <h3 class="text-2xl font-semibold mb-6">Додати критерій</h3>
+        <input type="text" x-model="newCriterion.name" placeholder="Назва критерію" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-4">
+        <input type="number" x-model.number="newCriterion.weight" placeholder="Вага (монет)" min="1" step="0.5" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-6">
+        <div class="flex gap-4">
+          <button @click="addCriterion()" class="flex-1 btn-primary">Додати</button>
+          <button @click="modals.addCriterion = false" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-full font-medium">Скасувати</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -350,23 +387,18 @@
         adminName: "Вчителю",
         activeTab: 'classes',
         classes: [],
+        criteria: [],
         searchQuery: '',
         suggestions: [],
         showDropdown: false,
         selectedStudent: null,
-        lesson: {
-          classId: '',
-          subjectId: '',
-          subjects: [],
-          students: [],
-          criteria: [],
-          selected: {}
-        },
-        modals: { addClass: false, addStudent: false },
+        lesson: { classId: '', subjectId: '', subjects: [], students: [], criteria: [], selected: {} },
+        modals: { addClass: false, addStudent: false, addCriterion: false },
         newClassName: '',
         currentClassId: null,
         currentClassName: '',
         newStudent: { first_name: '', last_name: '', telegram_id: '' },
+        newCriterion: { name: '', weight: 5 },
 
         async init() {
           lucide.createIcons();
@@ -381,6 +413,7 @@
           }
           this.adminName = data.admin_name || "Вчителю";
           this.classes = data.classes || [];
+          this.criteria = data.criteria || [];
         },
 
         isHighClass(className) {
@@ -537,37 +570,78 @@
           }
         },
 
-            async submitLesson() {
+        async submitLesson() {
           if (!this.lesson.subjectId) {
             tg.showAlert("Оберіть предмет");
             return;
           }
 
-          // Формуємо структуру: { criterion_id: [student_ids] }
-          const selected_criteria = {};
-          Object.keys(this.lesson.selected).forEach(criterionId => {
-            if (this.lesson.selected[criterionId] && this.lesson.selected[criterionId].length > 0) {
-              selected_criteria[criterionId] = this.lesson.selected[criterionId].map(id => parseInt(id));
+          let awardedStudents = new Set();
+          Object.values(this.lesson.selected).forEach(arr => {
+            if (arr) {
+              arr.forEach(id => awardedStudents.add(parseInt(id)));
             }
           });
 
-          if (Object.keys(selected_criteria).length === 0) {
-            tg.showAlert("Оберіть хоча б один критерій для хоча б одного учня");
+          if (awardedStudents.size === 0) {
+            tg.showAlert("Оберіть хоча б одного учня");
             return;
           }
 
           const res = await api('/api/admin/give_coins_lesson', {
-            selected_criteria: selected_criteria,
+            student_ids: Array.from(awardedStudents),
             subject_id: this.lesson.subjectId
           });
 
           if (res.success) {
             tg.showPopup({ message: res.success });
-            await this.loadData(); // оновлюємо баланси
-            this.lesson.selected = {}; // очищаємо галочки
+            await this.loadData();
+            this.lesson.selected = {};
           } else {
             tg.showAlert(res.error || "Помилка нарахування");
           }
+        },
+
+        openAddCriterionModal() {
+          this.newCriterion = { name: '', weight: 5 };
+          this.modals.addCriterion = true;
+        },
+
+        async addCriterion() {
+          if (!this.newCriterion.name.trim()) {
+            tg.showAlert("Введіть назву критерію");
+            return;
+          }
+          if (this.newCriterion.weight <= 0) {
+            tg.showAlert("Вага має бути більше 0");
+            return;
+          }
+
+          const res = await api('/api/admin/add_criterion', {
+            name: this.newCriterion.name.trim(),
+            weight: this.newCriterion.weight
+          });
+
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            this.modals.addCriterion = false;
+            await this.loadData();
+          } else {
+            tg.showAlert(res.error || "Помилка додавання");
+          }
+        },
+
+        async deleteCriterion(id) {
+          tg.showPopup({
+            title: "Видалити критерій?",
+            message: "Він більше не буде доступний для нарахувань",
+            buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }]
+          }, async (btn) => {
+            if (btn === 'del') {
+              const res = await api('/api/admin/delete_criterion', { criterion_id: id });
+              if (res.success) await this.loadData();
+            }
+          });
         }
       };
     }

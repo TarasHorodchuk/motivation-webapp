@@ -3,7 +3,7 @@ tg.expand();
 tg.ready();
 
 // ← ТУТ ТВІЙ ПОТОЧНИЙ NGROK URL (зміни після кожного перезапуску ngrok)
-const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← встав свій актуальний ngrok URL
+const BOT_API_URL = " https://alease-budless-castiel.ngrok-free.dev";  // ← встав свій актуальний ngrok URL
 
 // Функція для запиту до API бота
 async function apiRequest(endpoint, body = {}) {

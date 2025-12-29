@@ -12,32 +12,32 @@
     <h1>Адмін-панель 👨‍🏫</h1>
 
     <div class="card">
-      <h2>Почати урок</h2>
-      <select id="class-select">
-        <option value="">Обери клас</option>
-        <option value="7.1">7.1</option>
-        <option value="7.2">7.2</option>
-        <!-- Додай свої класи -->
-      </select>
-      <select id="subject-select">
-        <option value="">Обери предмет</option>
-        <option value="Алгебра">Алгебра</option>
-        <option value="Геометрія">Геометрія</option>
-      </select>
-      <button class="btn" onclick="startLesson()">Почати урок</button>
-    </div>
-
-    <div class="card" id="lesson-section" style="display:none;">
-      <h2>Оцінювання уроку</h2>
-      <div id="lesson-content">Завантажуємо...</div>
+      <h2>Додати клас</h2>
+      <input type="text" id="new-class" placeholder="Назва класу (наприклад 7.1)">
+      <button class="btn" onclick="addClass()">Додати клас</button>
     </div>
 
     <div class="card">
-      <h2>Критерії</h2>
-      <div id="criteria-list">Завантажуємо...</div>
-      <input type="text" id="new-crit-name" placeholder="Назва критерію">
-      <input type="number" id="new-crit-weight" placeholder="Вага (монет)" step="0.5">
-      <button class="btn" onclick="addCriterion()">Додати критерій</button>
+      <h2>Додати учня</h2>
+      <input type="text" id="student-first" placeholder="Ім'я">
+      <input type="text" id="student-last" placeholder="Прізвище">
+      <input type="text" id="student-class" placeholder="Клас">
+      <input type="number" id="student-id" placeholder="Telegram ID">
+      <button class="btn" onclick="addStudent()">Додати учня</button>
+    </div>
+
+    <div class="card">
+      <h2>Нарахувати монети</h2>
+      <input type="number" id="give-student-id" placeholder="ID учня">
+      <input type="number" id="give-amount" placeholder="Кількість монет" step="0.5">
+      <input type="text" id="give-subject" placeholder="Предмет">
+      <input type="text" id="give-reason" placeholder="Причина (необов'язково)">
+      <button class="btn" onclick="giveCoins()">Нарахувати</button>
+    </div>
+
+    <div class="card">
+      <h2>Класи та учні</h2>
+      <div id="classes-list">Завантажуємо...</div>
     </div>
   </div>
 
@@ -46,20 +46,101 @@
     tg.expand();
     tg.ready();
 
-    function startLesson() {
-      tg.showAlert("Урок почато (поки тест)");
-      // Пізніше тут запит до API
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← твій ngrok URL
+
+    async function apiRequest(endpoint, body = {}) {
+      try {
+        const response = await fetch(`${BOT_API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData, ...body })
+        });
+        return await response.json();
+      } catch (err) {
+        console.error(err);
+        tg.showAlert("Помилка з'єднання");
+        return { error: "Помилка" };
+      }
     }
 
-    function addCriterion() {
-      tg.showAlert("Критерій додано (поки тест)");
-      // Пізніше тут запит до API
+    async function loadClasses() {
+      const data = await apiRequest('/api/admin/classes');
+
+      if (data.error) {
+        document.getElementById("classes-list").innerHTML = `<p style="color:red;">${data.error}</p>`;
+        return;
+      }
+
+      let html = "";
+      data.forEach(cls => {
+        html += `<h3>${cls.class_name}</h3><ul>`;
+        cls.students.forEach(s => {
+          html += `<li>${s.first_name} ${s.last_name} (ID: ${s.telegram_id}) <button onclick="deleteStudent(${s.id})">Видалити</button></li>`;
+        });
+        html += "</ul>";
+      });
+
+      document.getElementById("classes-list").innerHTML = html || "Класів немає";
+    }
+
+    async function addClass() {
+      const name = document.getElementById("new-class").value;
+      if (!name) return tg.showAlert("Введи назву класу");
+
+      const data = await apiRequest('/api/admin/add_class', { class_name: name });
+      tg.showAlert(data.success || data.error);
+      loadClasses();
+    }
+
+    async function addStudent() {
+      const first = document.getElementById("student-first").value;
+      const last = document.getElementById("student-last").value;
+      const class_name = document.getElementById("student-class").value;
+      const telegram_id = document.getElementById("student-id").value;
+
+      if (!first || !last || !class_name || !telegram_id) return tg.showAlert("Заповни всі поля");
+
+      const data = await apiRequest('/api/admin/add_student', {
+        first_name: first,
+        last_name: last,
+        class_name: class_name,
+        telegram_id: parseInt(telegram_id)
+      });
+
+      tg.showAlert(data.success || data.error);
+      loadClasses();
+    }
+
+    async function deleteStudent(student_id) {
+      if (!confirm("Видалити учня?")) return;
+
+      const data = await apiRequest('/api/admin/delete_student', { student_id });
+      tg.showAlert(data.success || data.error);
+      loadClasses();
+    }
+
+    async function giveCoins() {
+      const student_id = document.getElementById("give-student-id").value;
+      const amount = document.getElementById("give-amount").value;
+      const subject = document.getElementById("give-subject").value;
+      const reason = document.getElementById("give-reason").value || "Нараховано адміністратором";
+
+      if (!student_id || !amount || !subject) return tg.showAlert("Заповни обов'язкові поля");
+
+      const data = await apiRequest('/api/admin/give_coins', {
+        student_id: parseInt(student_id),
+        amount: parseFloat(amount),
+        subject_name: subject,
+        reason: reason
+      });
+
+      tg.showAlert(data.success || data.error);
     }
 
     tg.MainButton.setText("Оновити").show();
-    tg.MainButton.onClick(() => {
-      tg.showAlert("Оновлення адмін-панелі (поки тест)");
-    });
+    tg.MainButton.onClick(loadClasses);
+
+    loadClasses();
   </script>
 </body>
 </html>

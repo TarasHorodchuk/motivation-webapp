@@ -5,13 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Мотивація Математика</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #1e3a8a;
-      color: white;
-      text-align: center;
-      padding: 50px;
-    }
+    body { font-family: Arial, sans-serif; background: #1e3a8a; color: white; text-align: center; padding: 50px; }
     h1 { font-size: 2.5em; }
     p { font-size: 1.5em; }
     #debug { margin-top: 30px; font-size: 1em; color: #a0d8ff; }
@@ -29,24 +23,19 @@
 
     const user = tg.initDataUnsafe.user;
     const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get('role');  // 'student' або 'admin'
+    const role = urlParams.get('role');
 
     let debugText = `Користувач: ${user ? user.first_name + ' (ID: ' + user.id + ')' : 'невідомий'}\n`;
     debugText += `Роль з URL: ${role || 'немає'}\n`;
     debugText += `Повний URL: ${window.location.href}`;
     document.getElementById("debug").innerText = debugText;
 
-    if (!role) {
-      document.body.innerHTML = "<h1>Помилка</h1><p>Не передано роль (role=student або role=admin)</p>";
-      return;
-    }
-
-    if (role === 'student') {
-      window.location.href = 'student.html';
-    } else if (role === 'admin') {
+    if (role === 'admin') {
       window.location.href = 'admin.html';
+    } else if (role === 'student') {
+      window.location.href = 'student.html';
     } else {
-      document.body.innerHTML = "<h1>Помилка</h1><p>Невідома роль</p>";
+      document.body.innerHTML = '<h1>Помилка</h1><p>Не передано роль (role=admin або role=student)</p>';
     }
   </script>
 </body>

@@ -86,38 +86,89 @@
   container.innerHTML = "";
 
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth(); // 0-11
+  let currentYear = today.getFullYear();
+  let currentMonth = today.getMonth(); // 0-11
 
-  // Визначаємо два місяці: поточний і попередній
-  let monthsToShow = [
-    { year: currentYear, month: currentMonth, name: "поточний" },
-  ];
+  // Обмеження: тільки поточний і попередній місяць
+  const maxYear = today.getFullYear();
+  const maxMonth = today.getMonth();
 
-  // Додаємо попередній місяць
-  let prevMonth = currentMonth - 1;
-  let prevYear = currentYear;
+  let prevMonth = maxMonth - 1;
+  let prevYear = maxYear;
   if (prevMonth < 0) {
     prevMonth = 11;
     prevYear--;
   }
-  monthsToShow.push({ year: prevYear, month: prevMonth, name: "попередній" });
-
-  // Сортуємо: спочатку попередній, потім поточний
-  monthsToShow.sort((a, b) => a.year - b.year || a.month - b.month);
+  const minYear = prevYear;
+  const minMonth = prevMonth;
 
   const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень",
                     "липень", "серпня", "вересня", "жовтень", "листопад", "грудня"];
 
-  monthsToShow.forEach(m => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.marginBottom = "20px";
+  // Навігація
+  const navDiv = document.createElement("div");
+  navDiv.style.display = "flex";
+  navDiv.style.justifyContent = "space-between";
+  navDiv.style.alignItems = "center";
+  navDiv.style.marginBottom = "15px";
 
-    const title = document.createElement("h3");
-    title.textContent = `${monthsUa[m.month]} ${m.year}`;
-    title.style.textTransform = "capitalize";
-    card.appendChild(title);
+  const prevButton = document.createElement("button");
+  prevButton.textContent = "←";
+  prevButton.style.fontSize = "1.5em";
+  prevButton.style.padding = "10px 15px";
+  prevButton.style.opacity = "0.5"; // спочатку неактивна, бо стартуємо з поточного
+
+  const nextButton = document.createElement("button");
+  nextButton.textContent = "→";
+  nextButton.style.fontSize = "1.5em";
+  nextButton.style.padding = "10px 15px";
+  nextButton.style.opacity = "0.5";
+  nextButton.style.cursor = "not-allowed";
+
+  const title = document.createElement("h3");
+  title.textContent = `${monthsUa[currentMonth]} ${currentYear}`;
+  title.style.margin = "0";
+  title.style.textTransform = "capitalize";
+
+  navDiv.appendChild(prevButton);
+  navDiv.appendChild(title);
+  navDiv.appendChild(nextButton);
+  container.appendChild(navDiv);
+
+  const monthCard = document.createElement("div");
+  monthCard.style.opacity = "0";
+  monthCard.style.transition = "opacity 0.3s ease";
+  container.appendChild(monthCard);
+
+  function updateButtons() {
+    // ← активна тільки якщо не в попередньому місяці
+    if (currentYear > minYear || currentMonth > minMonth) {
+      prevButton.style.opacity = "1";
+      prevButton.style.cursor = "pointer";
+      prevButton.disabled = false;
+    } else {
+      prevButton.style.opacity = "0.5";
+      prevButton.style.cursor = "not-allowed";
+      prevButton.disabled = true;
+    }
+
+    // → активна тільки якщо не в поточному місяці
+    if (currentYear < maxYear || currentMonth < maxMonth) {
+      nextButton.style.opacity = "1";
+      nextButton.style.cursor = "pointer";
+      nextButton.disabled = false;
+    } else {
+      nextButton.style.opacity = "0.5";
+      nextButton.style.cursor = "not-allowed";
+      nextButton.disabled = true;
+    }
+  }
+
+  function drawMonth(year, month) {
+    title.textContent = `${monthsUa[month]} ${year}`;
+
+    monthCard.style.opacity = "0";
+    monthCard.innerHTML = "";
 
     const headerDiv = document.createElement("div");
     headerDiv.className = "calendar-header";
@@ -126,28 +177,26 @@
       span.textContent = d;
       headerDiv.appendChild(span);
     });
-    card.appendChild(headerDiv);
+    monthCard.appendChild(headerDiv);
 
     const grid = document.createElement("div");
     grid.className = "calendar-grid";
 
-    const firstDay = new Date(m.year, m.month, 1).getDay();
+    const firstDay = new Date(year, month, 1).getDay();
     const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
-    const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Порожні клітинки
     for (let i = 0; i < adjustedFirstDay; i++) {
       const empty = document.createElement("div");
       empty.className = "calendar-day empty";
       grid.appendChild(empty);
     }
 
-    // Дні місяця
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDiv = document.createElement("div");
       dayDiv.className = "calendar-day";
 
-      const dayStr = `${m.year}-${String(m.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
       if (lessonDates.includes(dayStr)) {
         dayDiv.className += " lesson";
@@ -160,14 +209,41 @@
       grid.appendChild(dayDiv);
     }
 
-    card.appendChild(grid);
-    container.appendChild(card);
-  });
+    monthCard.appendChild(grid);
 
-  // Прибираємо навігацію ← →
-  // Більше не потрібна, бо завжди показуємо тільки 2 місяці
+    setTimeout(() => {
+      monthCard.style.opacity = "1";
+    }, 50);
+
+    updateButtons();
+  }
+
+  // Обробники кнопок
+  prevButton.onclick = () => {
+    if (prevButton.disabled) return;
+
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    drawMonth(currentYear, currentMonth);
+  };
+
+  nextButton.onclick = () => {
+    if (nextButton.disabled) return;
+
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    drawMonth(currentYear, currentMonth);
+  };
+
+  // Початкове малювання
+  drawMonth(currentYear, currentMonth);
 }
-
     function showDayDetail(dayStr, details) {
       if (!details || details.total === 0) {
         document.getElementById("day-details").innerHTML = "За цю дату немає нарахувань.";

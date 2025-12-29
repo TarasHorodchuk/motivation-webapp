@@ -3,7 +3,7 @@ tg.expand();
 tg.ready();
 
 // URL твого бота (Flask API) — заміни на свій ngrok або Render URL
-const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← ТУТ ТВІЙ NGROK АБО RENDER URL
+const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← встав свій поточний ngrok URL // ← ТУТ ТВІЙ NGROK АБО RENDER URL
 
 // Функція для запиту до API бота
 async function apiRequest(endpoint, body = {}) {

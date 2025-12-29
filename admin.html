@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Адмін-панель 👨‍🏫</title>
 
+  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -22,8 +25,12 @@
     }
   </script>
 
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -83,7 +90,7 @@
       </button>
     </div>
 
-    <!-- 1. Класи та учні -->
+    <!-- Класи та учні -->
     <div x-show="activeTab === 'classes'" class="space-y-10 animate-fade-in">
       <div class="glass p-8">
         <template x-for="cls in classes" :key="cls.id">
@@ -242,7 +249,7 @@
       </div>
     </div>
 
-    <!-- Почати пару — з кнопкою "Оцінити всіх" -->
+    <!-- Почати пару -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -313,7 +320,6 @@
         </button>
       </div>
 
-      <!-- Успіх -->
       <div x-show="lesson.success" class="text-center py-20 animate-fade-in" x-transition>
         <i data-lucide="check-circle" class="w-32 h-32 text-green-400 mx-auto mb-6"></i>
         <h3 class="text-3xl font-bold text-green-400 mb-4">Бонуси успішно нараховано!</h3>
@@ -323,7 +329,6 @@
         </button>
       </div>
 
-      <!-- Повторне нарахування -->
       <div x-show="lesson.alreadyRated" class="text-center py-20 opacity-80">
         <i data-lucide="alert-triangle" class="w-24 h-24 text-yellow-400 mx-auto mb-6"></i>
         <p class="text-2xl">Цей урок вже було оцінено сьогодні</p>
@@ -332,7 +337,6 @@
         </button>
       </div>
 
-      <!-- Підказки -->
       <div x-show="!lesson.classId && !lesson.success && !lesson.alreadyRated" class="text-center mt-12 opacity-60">
         <i data-lucide="chalkboard" class="w-20 h-20 mx-auto mb-4"></i>
         <p class="text-lg">Оберіть клас, щоб почати</p>
@@ -344,7 +348,7 @@
       </div>
     </div>
 
-    <!-- Модалки -->
+    <!-- Модальні вікна -->
     <div x-show="modals.addClass" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" x-transition>
       <div class="glass p-8 rounded-3xl max-w-md w-full">
         <h3 class="text-2xl font-semibold mb-6">Додати клас</h3>

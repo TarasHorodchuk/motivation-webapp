@@ -243,8 +243,7 @@
       </div>
     </div>
 
-    <!-- 4. Почати пару -->
-       <!-- 4. Почати пару -->
+    <!-- 4. Почати пару (з виправленими чекбоксами) -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -262,7 +261,6 @@
         </template>
       </select>
 
-      <!-- Показуємо критерії та учнів тільки після вибору класу + предмету -->
       <div x-show="lesson.classId && lesson.subjectId && lesson.criteria.length > 0" class="space-y-8 animate-fade-in">
         <div class="text-center mb-6">
           <p class="text-lg opacity-80">Нараховуємо бонуси за предмет:</p>
@@ -279,17 +277,17 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <template x-for="student in lesson.students">
                 <label class="relative flex items-center gap-4 p-4 rounded-2xl hover:bg-white hover:bg-opacity-10 cursor-pointer transition-all group">
-                  <!-- Кастомний чекбокс з анімацією -->
                   <div class="relative">
                     <input
                       type="checkbox"
                       :value="student.id"
-                      x-model="lesson.selected[criterion.id]"
+                      @change="toggleStudent(criterion.id, student.id, $event.target.checked)"
+                      :checked="isSelected(criterion.id, student.id)"
                       class="absolute opacity-0 w-0 h-0"
                     >
                     <div class="w-7 h-7 rounded-xl border-2 border-white border-opacity-40 flex items-center justify-center transition-all duration-300 group-hover:border-opacity-70">
                       <div class="w-4 h-4 rounded bg-purple-500 scale-0 transition-transform duration-300"
-                           :class="{ 'scale-100': lesson.selected[criterion.id]?.includes(student.id) }"></div>
+                           :class="{ 'scale-100': isSelected(criterion.id, student.id) }"></div>
                     </div>
                   </div>
 
@@ -305,7 +303,6 @@
         </button>
       </div>
 
-      <!-- Підказка, якщо не вибрано клас або предмет -->
       <div x-show="!lesson.classId" class="text-center mt-12 opacity-60">
         <i data-lucide="chalkboard" class="w-20 h-20 mx-auto mb-4"></i>
         <p class="text-lg">Оберіть клас, щоб почати</p>
@@ -344,229 +341,252 @@
   </div>
 
   <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.ready();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
 
-  const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← ОНОВЛЮЙ СВІЙ NGROK URL
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← ОНОВЛЮЙ
 
-  async function api(endpoint, body = {}) {
-    try {
-      const res = await fetch(`${BOT_API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, initData: tg.initData })
-      });
-      return await res.json();
-    } catch (err) {
-      tg.showAlert("Помилка з'єднання з сервером");
-      return { error: "network" };
+    async function api(endpoint, body = {}) {
+      try {
+        const res = await fetch(`${BOT_API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, initData: tg.initData })
+        });
+        return await res.json();
+      } catch (err) {
+        tg.showAlert("Помилка з'єднання");
+        return { error: "network" };
+      }
     }
-  }
 
-  function adminPanel() {
-    return {
-      adminName: "Вчителю",
-      activeTab: 'classes',
-      classes: [],
-      searchQuery: '',
-      suggestions: [],
-      showDropdown: false,
-      selectedStudent: null,
-      lesson: {
-        classId: '',
-        subjectId: '',
-        subjects: [],
-        students: [],
-        criteria: [],
-        selected: {}
-      },
-      modals: { addClass: false, addStudent: false },
-      newClassName: '',
-      currentClassId: null,
-      currentClassName: '',
-      newStudent: { first_name: '', last_name: '', telegram_id: '' },
+    function adminPanel() {
+      return {
+        adminName: "Вчителю",
+        activeTab: 'classes',
+        classes: [],
+        searchQuery: '',
+        suggestions: [],
+        showDropdown: false,
+        selectedStudent: null,
+        lesson: {
+          classId: '',
+          subjectId: '',
+          subjects: [],
+          students: [],
+          criteria: [],
+          selected: {}
+        },
+        modals: { addClass: false, addStudent: false },
+        newClassName: '',
+        currentClassId: null,
+        currentClassName: '',
+        newStudent: { first_name: '', last_name: '', telegram_id: '' },
 
-      async init() {
-        lucide.createIcons();
-        await this.loadData();
-      },
+        async init() {
+          lucide.createIcons();
+          await this.loadData();
+        },
 
-      async loadData() {
-        const data = await api('/api/admin/full_data');
-        if (data.error) {
-          tg.showAlert("Не вдалося завантажити дані");
-          return;
-        }
-        this.adminName = data.admin_name || "Вчителю";
-        this.classes = data.classes || [];
-      },
+        async loadData() {
+          const data = await api('/api/admin/full_data');
+          if (data.error) {
+            tg.showAlert("Не вдалося завантажити дані");
+            return;
+          }
+          this.adminName = data.admin_name || "Вчителю";
+          this.classes = data.classes || [];
+        },
 
-      isHighClass(className) {
-        const num = parseInt(className);
-        return num >= 7;
-      },
+        isHighClass(className) {
+          const num = parseInt(className);
+          return num >= 7;
+        },
 
-      getCoins(student, subjectName) {
-        const s = student.subject_balances?.find(x => x.name === subjectName);
-        return s ? s.coins : 0;
-      },
+        getCoins(student, subjectName) {
+          const s = student.subject_balances?.find(x => x.name === subjectName);
+          return s ? s.coins : 0;
+        },
 
-      updateSuggestions() {
-        if (!this.searchQuery.trim()) {
+        updateSuggestions() {
+          if (!this.searchQuery.trim()) {
+            this.suggestions = [];
+            return;
+          }
+          const q = this.searchQuery.toLowerCase().trim();
           this.suggestions = [];
-          return;
-        }
-        const q = this.searchQuery.toLowerCase().trim();
-        this.suggestions = [];
-        for (let cls of this.classes) {
-          for (let st of cls.students) {
-            if (st.last_name.toLowerCase().startsWith(q)) {
-              this.suggestions.push({ ...st, class_name: cls.name });
+          for (let cls of this.classes) {
+            for (let st of cls.students) {
+              if (st.last_name.toLowerCase().startsWith(q)) {
+                this.suggestions.push({ ...st, class_name: cls.name });
+              }
             }
           }
-        }
-        this.suggestions.sort((a, b) => a.last_name.localeCompare(b.last_name));
-      },
+          this.suggestions.sort((a, b) => a.last_name.localeCompare(b.last_name));
+        },
 
-      selectStudent(student) {
-        this.selectedStudent = { ...student, class_name: student.class_name };
-        this.searchQuery = student.last_name;
-      },
+        selectStudent(student) {
+          this.selectedStudent = { ...student, class_name: student.class_name };
+          this.searchQuery = student.last_name;
+        },
 
-      openAddClassModal() {
-        this.newClassName = '';
-        this.modals.addClass = true;
-      },
+        openAddClassModal() {
+          this.newClassName = '';
+          this.modals.addClass = true;
+        },
 
-      async addClass() {
-        if (!this.newClassName.trim()) return tg.showAlert("Введіть назву класу");
-        const res = await api('/api/admin/add_class', { class_name: this.newClassName.trim() });
-        if (res.success) {
-          tg.showPopup({ message: res.success });
-          this.modals.addClass = false;
-          await this.loadData();
-        } else {
-          tg.showAlert(res.error || "Помилка");
-        }
-      },
-
-      openAddStudentModal(classId, className) {
-        this.currentClassId = classId;
-        this.currentClassName = className;
-        this.newStudent = { first_name: '', last_name: '', telegram_id: '' };
-        this.modals.addStudent = true;
-      },
-
-      async addStudent() {
-        if (!this.newStudent.first_name || !this.newStudent.last_name || !this.newStudent.telegram_id) {
-          return tg.showAlert("Заповніть усі поля");
-        }
-        const res = await api('/api/admin/add_student', {
-          first_name: this.newStudent.first_name.trim(),
-          last_name: this.newStudent.last_name.trim(),
-          telegram_id: parseInt(this.newStudent.telegram_id),
-          class_name: this.currentClassName
-        });
-        if (res.success) {
-          tg.showPopup({ message: res.success });
-          this.modals.addStudent = false;
-          await this.loadData();
-        } else {
-          tg.showAlert(res.error || "Помилка додавання");
-        }
-      },
-
-      async deleteClass(id) {
-        tg.showPopup({
-          title: "Видалити клас?",
-          message: "Усе буде втрачено назавжди.",
-          buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }]
-        }, async (btn) => {
-          if (btn === 'del') {
-            const res = await api('/api/admin/delete_class', { class_id: id });
-            if (res.success) await this.loadData();
+        async addClass() {
+          if (!this.newClassName.trim()) return tg.showAlert("Введіть назву класу");
+          const res = await api('/api/admin/add_class', { class_name: this.newClassName.trim() });
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            this.modals.addClass = false;
+            await this.loadData();
+          } else {
+            tg.showAlert(res.error || "Помилка");
           }
-        });
-      },
+        },
 
-      async removeStudent(studentId) {
-        tg.showPopup({
-          title: "Видалити учня?",
-          message: "Усі бонуси будуть втрачені.",
-          buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }]
-        }, async (btn) => {
-          if (btn === 'del') {
-            const res = await api('/api/admin/delete_student', { student_id: studentId });
-            if (res.success) await this.loadData();
+        openAddStudentModal(classId, className) {
+          this.currentClassId = classId;
+          this.currentClassName = className;
+          this.newStudent = { first_name: '', last_name: '', telegram_id: '' };
+          this.modals.addStudent = true;
+        },
+
+        async addStudent() {
+          if (!this.newStudent.first_name || !this.newStudent.last_name || !this.newStudent.telegram_id) {
+            return tg.showAlert("Заповніть усі поля");
           }
-        });
-      },
-
-      // Нові функції для "Почати пару"
-      onClassChange() {
-        this.lesson.subjectId = '';
-        this.lesson.subjects = [];
-        this.lesson.students = [];
-        this.lesson.criteria = [];
-        this.lesson.selected = {};
-        if (this.lesson.classId) {
-          this.loadSubjectsAndCriteria();
-        }
-      },
-
-      onSubjectChange() {
-        this.lesson.students = [];
-        this.lesson.selected = {};
-        if (this.lesson.classId && this.lesson.subjectId) {
-          this.loadStudentsForLesson();
-        }
-      },
-
-      async loadSubjectsAndCriteria() {
-        const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
-        this.lesson.subjects = data.subjects || [];
-        this.lesson.criteria = data.criteria || [];
-      },
-
-      async loadStudentsForLesson() {
-        const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
-        this.lesson.students = data.students || [];
-      },
-
-      async submitLesson() {
-        if (!this.lesson.subjectId) {
-          tg.showAlert("Оберіть предмет");
-          return;
-        }
-
-        let awardedStudents = new Set();
-        Object.values(this.lesson.selected).forEach(arr => {
-          if (arr) {
-            arr.forEach(id => awardedStudents.add(parseInt(id)));
+          const res = await api('/api/admin/add_student', {
+            first_name: this.newStudent.first_name.trim(),
+            last_name: this.newStudent.last_name.trim(),
+            telegram_id: parseInt(this.newStudent.telegram_id),
+            class_name: this.currentClassName
+          });
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            this.modals.addStudent = false;
+            await this.loadData();
+          } else {
+            tg.showAlert(res.error || "Помилка додавання");
           }
-        });
+        },
 
-        if (awardedStudents.size === 0) {
-          tg.showAlert("Оберіть хоча б одного учня для нарахування");
-          return;
+        async deleteClass(id) {
+          tg.showPopup({
+            title: "Видалити клас?",
+            message: "Усе буде втрачено назавжди.",
+            buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }]
+          }, async (btn) => {
+            if (btn === 'del') {
+              const res = await api('/api/admin/delete_class', { class_id: id });
+              if (res.success) await this.loadData();
+            }
+          });
+        },
+
+        async removeStudent(studentId) {
+          tg.showPopup({
+            title: "Видалити учня?",
+            message: "Усі бонуси будуть втрачені.",
+            buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }]
+          }, async (btn) => {
+            if (btn === 'del') {
+              const res = await api('/api/admin/delete_student', { student_id: studentId });
+              if (res.success) await this.loadData();
+            }
+          });
+        },
+
+        onClassChange() {
+          this.lesson.subjectId = '';
+          this.lesson.subjects = [];
+          this.lesson.students = [];
+          this.lesson.criteria = [];
+          this.lesson.selected = {};
+          if (this.lesson.classId) {
+            this.loadSubjectsAndCriteria();
+          }
+        },
+
+        onSubjectChange() {
+          this.lesson.students = [];
+          this.lesson.selected = {};
+          if (this.lesson.classId && this.lesson.subjectId) {
+            this.loadStudentsForLesson();
+          }
+        },
+
+        async loadSubjectsAndCriteria() {
+          const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
+          this.lesson.subjects = data.subjects || [];
+          this.lesson.criteria = data.criteria || [];
+        },
+
+        async loadStudentsForLesson() {
+          const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
+          this.lesson.students = data.students || [];
+        },
+
+        // Функції для чекбоксів
+        isSelected(criterionId, studentId) {
+          if (!this.lesson.selected[criterionId]) {
+            return false;
+          }
+          return this.lesson.selected[criterionId].includes(parseInt(studentId));
+        },
+
+        toggleStudent(criterionId, studentId, checked) {
+          if (!this.lesson.selected[criterionId]) {
+            this.lesson.selected[criterionId] = [];
+          }
+
+          studentId = parseInt(studentId);
+
+          if (checked) {
+            if (!this.lesson.selected[criterionId].includes(studentId)) {
+              this.lesson.selected[criterionId].push(studentId);
+            }
+          } else {
+            this.lesson.selected[criterionId] = this.lesson.selected[criterionId].filter(id => id !== studentId);
+          }
+        },
+
+        async submitLesson() {
+          if (!this.lesson.subjectId) {
+            tg.showAlert("Оберіть предмет");
+            return;
+          }
+
+          let awardedStudents = new Set();
+          Object.values(this.lesson.selected).forEach(arr => {
+            if (arr) {
+              arr.forEach(id => awardedStudents.add(parseInt(id)));
+            }
+          });
+
+          if (awardedStudents.size === 0) {
+            tg.showAlert("Оберіть хоча б одного учня");
+            return;
+          }
+
+          const res = await api('/api/admin/give_coins_lesson', {
+            student_ids: Array.from(awardedStudents),
+            subject_id: this.lesson.subjectId
+          });
+
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            await this.loadData();
+            this.lesson.selected = {};
+          } else {
+            tg.showAlert(res.error || "Помилка нарахування");
+          }
         }
-
-        const res = await api('/api/admin/give_coins_lesson', {
-          student_ids: Array.from(awardedStudents),
-          subject_id: this.lesson.subjectId
-        });
-
-        if (res.success) {
-          tg.showPopup({ message: res.success });
-          await this.loadData(); // оновлюємо баланси
-          this.lesson.selected = {}; // очищаємо галочки
-        } else {
-          tg.showAlert(res.error || "Помилка нарахування");
-        }
-      }
-    };
-  }
-</script>
+      };
+    }
+  </script>
 </body>
 </html>

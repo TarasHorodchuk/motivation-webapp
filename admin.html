@@ -83,7 +83,7 @@
       </button>
     </div>
 
-    <!-- Класи та учні -->
+    <!-- 1. Класи та учні -->
     <div x-show="activeTab === 'classes'" class="space-y-10 animate-fade-in">
       <div class="glass p-8">
         <template x-for="cls in classes" :key="cls.id">
@@ -242,7 +242,7 @@
       </div>
     </div>
 
-        <!-- 4. Почати пару — з кнопкою "Оцінити всіх" -->
+    <!-- Почати пару — з кнопкою "Оцінити всіх" -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -343,6 +343,7 @@
         <p class="text-lg">Оберіть предмет</p>
       </div>
     </div>
+
     <!-- Модалки -->
     <div x-show="modals.addClass" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" x-transition>
       <div class="glass p-8 rounded-3xl max-w-md w-full">
@@ -397,7 +398,7 @@
         });
         return await res.json();
       } catch (err) {
-        tg.showAlert("Помилка з'єднання");
+        tg.showAlert("Помилка з'єднання з ботом");
         return { error: "network" };
       }
     }
@@ -620,12 +621,11 @@
         selectAllForCriterion(criterionId) {
           if (!this.lesson.students || this.lesson.students.length === 0) return;
 
-          // Ставимо всіх учнів для цього критерію
           this.lesson.selected[criterionId] = this.lesson.students.map(st => st.id);
 
-          // Оновлюємо іконки
           this.$nextTick(() => lucide.createIcons());
         },
+
         async submitLesson() {
           if (!this.lesson.subjectId) {
             tg.showAlert("Оберіть предмет");

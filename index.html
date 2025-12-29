@@ -14,13 +14,13 @@
     }
     h1 { font-size: 2.5em; }
     p { font-size: 1.5em; }
+    #debug { margin-top: 30px; font-size: 1em; color: #a0d8ff; }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h1>Web App працює! 🎉</h1>
-  <p>Привіт від Grok!</p>
-  <p id="user-info">Завантаження даних...</p>
+  <h1>Завантаження профілю...</h1>
+  <div id="debug"></div>
 
   <script>
     const tg = window.Telegram.WebApp;
@@ -28,15 +28,26 @@
     tg.ready();
 
     const user = tg.initDataUnsafe.user;
-    if (user) {
-      document.getElementById("user-info").innerText =
-        `Привіт, ${user.first_name || 'користувач'}! Твій ID: ${user.id}`;
-    } else {
-      document.getElementById("user-info").innerText = "Не вдалося отримати дані користувача";
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role');  // 'student' або 'admin'
+
+    let debugText = `Користувач: ${user ? user.first_name + ' (ID: ' + user.id + ')' : 'невідомий'}\n`;
+    debugText += `Роль з URL: ${role || 'немає'}\n`;
+    debugText += `Повний URL: ${window.location.href}`;
+    document.getElementById("debug").innerText = debugText;
+
+    if (!role) {
+      document.body.innerHTML = "<h1>Помилка</h1><p>Не передано роль (role=student або role=admin)</p>";
+      return;
     }
 
-    tg.MainButton.setText("Закрити").show();
-    tg.MainButton.onClick(() => tg.close());
+    if (role === 'student') {
+      window.location.href = 'student.html';
+    } else if (role === 'admin') {
+      window.location.href = 'admin.html';
+    } else {
+      document.body.innerHTML = "<h1>Помилка</h1><p>Невідома роль</p>";
+    }
   </script>
 </body>
 </html>

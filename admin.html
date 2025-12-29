@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Адмін-панель 👨‍🏫</title>
 
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,12 +22,8 @@
     }
   </script>
 
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -64,7 +57,6 @@
 </head>
 <body class="text-white p-4 pb-20">
   <div class="max-w-5xl mx-auto relative z-10" x-data="adminPanel()" x-init="init()">
-    <!-- Привітання -->
     <div class="text-center mb-10 animate-fade-in">
       <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
         Адмін-панель
@@ -72,7 +64,6 @@
       <p class="text-xl font-medium opacity-90" x-text="`Вітаю, ${adminName}! 👨‍🏫`"></p>
     </div>
 
-    <!-- Tabs -->
     <div class="flex flex-wrap justify-center gap-4 mb-10">
       <button @click="activeTab = 'classes'" :class="{'glass shadow-xl ring-4 ring-purple-500 ring-opacity-40': activeTab === 'classes'}"
               class="px-7 py-3 rounded-3xl font-medium text-base transition-all transform hover:scale-105">
@@ -92,7 +83,7 @@
       </button>
     </div>
 
-    <!-- 1. Класи та учні -->
+    <!-- Класи та учні -->
     <div x-show="activeTab === 'classes'" class="space-y-10 animate-fade-in">
       <div class="glass p-8">
         <template x-for="cls in classes" :key="cls.id">
@@ -152,7 +143,7 @@
       </div>
     </div>
 
-    <!-- 2. Критерії оцінювання -->
+    <!-- Критерії оцінювання -->
     <div x-show="activeTab === 'criteria'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-8 flex items-center gap-3">
         <i data-lucide="check-square" class="w-8 h-8 text-green-400"></i>
@@ -187,7 +178,7 @@
       </button>
     </div>
 
-    <!-- 3. Пошук учня -->
+    <!-- Пошук учня -->
     <div x-show="activeTab === 'search'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
         <i data-lucide="search" class="w-8 h-8"></i>
@@ -251,7 +242,7 @@
       </div>
     </div>
 
-      <!-- 4. Почати пару — з анімацією успіху та захистом від повторного нарахування -->
+    <!-- Почати пару — з успіхом і захистом від повтору -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -269,8 +260,8 @@
         </template>
       </select>
 
-      <!-- Блок з критеріями — зникає після нарахування -->
-      <div x-show="lesson.classId && lesson.subjectId && lesson.criteria.length > 0 && !lesson.success"
+      <!-- Форма оцінювання -->
+      <div x-show="lesson.classId && lesson.subjectId && lesson.criteria.length > 0 && !lesson.success && !lesson.alreadyRated"
            class="space-y-8 animate-fade-in"
            x-transition:leave="transition ease-in duration-500"
            x-transition:leave-start="opacity-100"
@@ -317,23 +308,26 @@
         </button>
       </div>
 
-      <!-- Повідомлення про успіх — з’являється з анімацією -->
+      <!-- Успіх -->
       <div x-show="lesson.success" class="text-center py-20 animate-fade-in" x-transition>
         <i data-lucide="check-circle" class="w-32 h-32 text-green-400 mx-auto mb-6"></i>
         <h3 class="text-3xl font-bold text-green-400 mb-4">Бонуси успішно нараховано!</h3>
-        <p class="text-xl opacity-80" x-text="lesson.successMessage"></p>
-        <button @click="resetLesson()" class="mt-10 btn-primary text-lg py-4 px-8">
+        <p class="text-xl opacity-80 mb-8" x-text="lesson.successMessage"></p>
+        <button @click="resetLesson()" class="btn-primary text-lg py-4 px-8">
           Оцінити інший клас
         </button>
       </div>
 
-      <!-- Повідомлення про повторне нарахування -->
+      <!-- Повторне нарахування -->
       <div x-show="lesson.alreadyRated" class="text-center py-20 opacity-80">
         <i data-lucide="alert-triangle" class="w-24 h-24 text-yellow-400 mx-auto mb-6"></i>
         <p class="text-2xl">Цей урок вже було оцінено сьогодні</p>
+        <button @click="resetLesson()" class="mt-8 btn-primary text-lg py-4 px-8">
+          Обрати інший клас
+        </button>
       </div>
 
-      <!-- Підказки на початку -->
+      <!-- Підказки -->
       <div x-show="!lesson.classId && !lesson.success && !lesson.alreadyRated" class="text-center mt-12 opacity-60">
         <i data-lucide="chalkboard" class="w-20 h-20 mx-auto mb-4"></i>
         <p class="text-lg">Оберіть клас, щоб почати</p>
@@ -345,7 +339,7 @@
       </div>
     </div>
 
-    <!-- Модальні вікна -->
+    <!-- Модалки -->
     <div x-show="modals.addClass" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" x-transition>
       <div class="glass p-8 rounded-3xl max-w-md w-full">
         <h3 class="text-2xl font-semibold mb-6">Додати клас</h3>
@@ -414,7 +408,7 @@
         suggestions: [],
         showDropdown: false,
         selectedStudent: null,
-     lesson: {
+        lesson: {
           classId: '',
           subjectId: '',
           subjects: [],
@@ -550,27 +544,30 @@
         },
 
         onClassChange() {
-         this.resetLesson();
+          this.lesson = {
+            classId: this.lesson.classId,
+            subjectId: '',
+            subjects: [],
+            students: [],
+            criteria: [],
+            selected: {},
+            success: false,
+            successMessage: '',
+            alreadyRated: false
+          };
           if (this.lesson.classId) {
             this.loadSubjectsAndCriteria();
           }
         },
 
-      onSubjectChange() {
+        onSubjectChange() {
           this.lesson.students = [];
           this.lesson.selected = {};
           this.lesson.alreadyRated = false;
           if (this.lesson.classId && this.lesson.subjectId) {
             this.loadStudentsForLesson();
-            this.checkIfAlreadyRated(); // нова функція
+            this.checkIfAlreadyRated();
           }
-        },
-        async checkIfAlreadyRated() {
-          const res = await api('/api/admin/check_lesson_rated', {
-            class_id: this.lesson.classId,
-            subject_id: this.lesson.subjectId
-          });
-          this.lesson.alreadyRated = res.already_rated || false;
         },
 
         async loadSubjectsAndCriteria() {
@@ -582,6 +579,15 @@
         async loadStudentsForLesson() {
           const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
           this.lesson.students = data.students || [];
+        },
+
+        async checkIfAlreadyRated() {
+          if (!this.lesson.classId || !this.lesson.subjectId) return;
+          const res = await api('/api/admin/check_lesson_rated', {
+            class_id: this.lesson.classId,
+            subject_id: this.lesson.subjectId
+          });
+          this.lesson.alreadyRated = res.already_rated || false;
         },
 
         isSelected(criterionId, studentId) {
@@ -607,14 +613,13 @@
           }
         },
 
-             async submitLesson() {
+        async submitLesson() {
           if (!this.lesson.subjectId) {
             tg.showAlert("Оберіть предмет");
             return;
           }
 
-          // Правильно формуємо { "1": [3, 5], "2": [3] } — criterion_id: [student_ids]
-         const selected_criteria = {};
+          const selected_criteria = {};
           Object.keys(this.lesson.selected).forEach(criterionId => {
             const students = this.lesson.selected[criterionId];
             if (students && students.length > 0) {
@@ -629,20 +634,18 @@
 
           const res = await api('/api/admin/give_coins_lesson', {
             selected_criteria: selected_criteria,
-            subject_id: parseInt(this.lesson.subjectId),
-            class_id: parseInt(this.lesson.classId)
+            subject_id: parseInt(this.lesson.subjectId)
           });
 
           if (res.success) {
             this.lesson.success = true;
             this.lesson.successMessage = res.success;
-          } else if (res.error && res.error.includes("вже було оцінено")) {
-            this.lesson.alreadyRated = true;
           } else {
             tg.showAlert(res.error || "Помилка нарахування");
           }
         },
-resetLesson() {
+
+        resetLesson() {
           this.lesson = {
             classId: '',
             subjectId: '',
@@ -655,6 +658,7 @@ resetLesson() {
             alreadyRated: false
           };
         },
+
         openAddCriterionModal() {
           this.newCriterion = { name: '', weight: 5 };
           this.modals.addCriterion = true;

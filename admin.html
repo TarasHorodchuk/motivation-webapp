@@ -244,44 +244,76 @@
     </div>
 
     <!-- 4. Почати пару -->
+       <!-- 4. Почати пару -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
-      <select x-model="lesson.classId" @change="loadLessonData()" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-5 text-base">
+      <select x-model="lesson.classId" @change="onClassChange()" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-5 text-base">
         <option value="">Оберіть клас</option>
         <template x-for="cls in classes">
           <option :value="cls.id" x-text="cls.name"></option>
         </template>
       </select>
 
-      <select x-model="lesson.subjectId" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-7 text-base" x-show="lesson.subjects.length > 0">
+      <select x-model="lesson.subjectId" @change="onSubjectChange()" class="w-full p-4 rounded-3xl bg-white bg-opacity-10 mb-8 text-base" x-show="lesson.subjects.length > 0">
         <option value="">Оберіть предмет</option>
         <template x-for="subj in lesson.subjects">
           <option :value="subj.id" x-text="subj.name"></option>
         </template>
       </select>
 
-      <div x-show="lesson.criteria.length > 0" class="space-y-7">
-        <template x-for="criterion in lesson.criteria">
+      <!-- Показуємо критерії та учнів тільки після вибору класу + предмету -->
+      <div x-show="lesson.classId && lesson.subjectId && lesson.criteria.length > 0" class="space-y-8 animate-fade-in">
+        <div class="text-center mb-6">
+          <p class="text-lg opacity-80">Нараховуємо бонуси за предмет:</p>
+          <p class="text-2xl font-bold text-purple-300" x-text="lesson.subjects.find(s => s.id == lesson.subjectId)?.name || ''"></p>
+        </div>
+
+        <template x-for="criterion in lesson.criteria" :key="criterion.id">
           <div class="glass p-6 rounded-3xl">
-            <h4 class="text-xl font-semibold mb-5 flex items-center gap-2">
-              <i data-lucide="award" class="w-6 h-6"></i>
+            <h4 class="text-xl font-semibold mb-6 flex items-center gap-3">
+              <i data-lucide="award" class="w-7 h-7 text-yellow-300"></i>
               <span x-text="criterion.name + ' (+' + criterion.weight + ' 🪙)'"></span>
             </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <template x-for="student in lesson.students">
-                <label class="flex items-center gap-3 p-3 rounded-2xl hover:bg-white hover:bg-opacity-10 cursor-pointer transition">
-                  <input type="checkbox" :value="student.id" x-model="lesson.selected[criterion.id]">
-                  <span x-text="student.last_name + ' ' + student.first_name"></span>
+                <label class="relative flex items-center gap-4 p-4 rounded-2xl hover:bg-white hover:bg-opacity-10 cursor-pointer transition-all group">
+                  <!-- Кастомний чекбокс з анімацією -->
+                  <div class="relative">
+                    <input
+                      type="checkbox"
+                      :value="student.id"
+                      x-model="lesson.selected[criterion.id]"
+                      class="absolute opacity-0 w-0 h-0"
+                    >
+                    <div class="w-7 h-7 rounded-xl border-2 border-white border-opacity-40 flex items-center justify-center transition-all duration-300 group-hover:border-opacity-70">
+                      <div class="w-4 h-4 rounded bg-purple-500 scale-0 transition-transform duration-300"
+                           :class="{ 'scale-100': lesson.selected[criterion.id]?.includes(student.id) }"></div>
+                    </div>
+                  </div>
+
+                  <span class="text-lg" x-text="student.last_name + ' ' + student.first_name"></span>
                 </label>
               </template>
             </div>
           </div>
         </template>
 
-        <button @click="submitLesson()" class="w-full btn-primary text-lg py-4 mt-6">
-          Нарахувати бонуси
+        <button @click="submitLesson()" class="w-full btn-primary text-lg py-4 mt-8 shadow-lg">
+          Нарахувати бонуси за урок
         </button>
+      </div>
+
+      <!-- Підказка, якщо не вибрано клас або предмет -->
+      <div x-show="!lesson.classId" class="text-center mt-12 opacity-60">
+        <i data-lucide="chalkboard" class="w-20 h-20 mx-auto mb-4"></i>
+        <p class="text-lg">Оберіть клас, щоб почати</p>
+      </div>
+
+      <div x-show="lesson.classId && !lesson.subjectId && lesson.subjects.length > 0" class="text-center mt-12 opacity-60">
+        <i data-lucide="book-marked" class="w-20 h-20 mx-auto mb-4"></i>
+        <p class="text-lg">Оберіть предмет</p>
       </div>
     </div>
 
@@ -473,6 +505,68 @@
           tg.showPopup({ message: "Бонуси нараховано! (в розробці)" });
         }
       };
+              onClassChange() {
+          this.lesson.subjectId = '';
+          this.lesson.subjects = [];
+          this.lesson.students = [];
+          this.lesson.criteria = [];
+          this.lesson.selected = {};
+          if (this.lesson.classId) {
+            this.loadSubjectsAndCriteria();
+          }
+        },
+
+        onSubjectChange() {
+          this.lesson.students = [];
+          this.lesson.selected = {};
+          if (this.lesson.classId && this.lesson.subjectId) {
+            this.loadStudentsForLesson();
+          }
+        },
+
+        async loadSubjectsAndCriteria() {
+          const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
+          this.lesson.subjects = data.subjects || [];
+          this.lesson.criteria = data.criteria || [];
+        },
+
+        async loadStudentsForLesson() {
+          const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
+          this.lesson.students = data.students || [];
+        },
+
+        async submitLesson() {
+          if (!this.lesson.subjectId) {
+            tg.showAlert("Оберіть предмет");
+            return;
+          }
+
+          // Збираємо всіх учнів, які отримали хоча б один критерій
+          let awardedStudents = new Set();
+          Object.values(this.lesson.selected).forEach(arr => {
+            if (arr) {
+              arr.forEach(id => awardedStudents.add(parseInt(id)));
+            }
+          });
+
+          if (awardedStudents.size === 0) {
+            tg.showAlert("Оберіть хоча б одного учня");
+            return;
+          }
+
+          const res = await api('/api/admin/give_coins_lesson', {
+            student_ids: Array.from(awardedStudents),
+            subject_id: this.lesson.subjectId
+          });
+
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            await this.loadData(); // оновлюємо всі баланси
+            this.lesson.selected = {}; // очищаємо галочки
+          } else {
+            tg.showAlert(res.error || "Помилка нарахування");
+          }
+        }
     }
   </script>
 </body>

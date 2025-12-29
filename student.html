@@ -37,173 +37,174 @@
   </div>
 
   <script>
-   const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
 
-const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← твій ngrok URL
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← твій ngrok URL
 
-async function apiRequest(endpoint) {
-  try {
-    const response = await fetch(`${BOT_API_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: tg.initData })
-    });
-    return await response.json();
-  } catch (err) {
-    console.error("API помилка:", err);
-    tg.showAlert("Помилка з'єднання з ботом");
-    return { error: "Помилка з'єднання" };
-  }
-}
-
-async function loadProfile() {
-  const data = await apiRequest('/api/student/profile');
-
-  if (data.error) {
-    document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
-    return;
-  }
-
-  document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
-  document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-  document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
-
-  const subjectsDiv = document.getElementById("subjects-balance");
-  subjectsDiv.innerHTML = data.subjects.map(s => `
-    <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
-  `).join('');
-
-  renderCalendar(data.lesson_dates, data.daily_details);
-}
-
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-
-const initialMonth = currentMonth;
-const initialYear = currentYear;
-
-function renderCalendar(lessonDates, dailyDetails) {
-  const container = document.getElementById("calendar-container");
-  container.innerHTML = "";
-
-  const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересня", "жовтень", "листопад", "грудень"];
-
-  const navDiv = document.createElement("div");
-  navDiv.style.display = "flex";
-  navDiv.style.justifyContent = "space-between";
-  navDiv.style.marginBottom = "10px";
-
-  const prevButton = document.createElement("button");
-  prevButton.textContent = "←";
-  prevButton.onclick = () => {
-    currentMonth--;
-    if (currentMonth < 0) {
-      currentMonth = 11;
-      currentYear--;
+    async function apiRequest(endpoint) {
+      try {
+        const response = await fetch(`${BOT_API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData })
+        });
+        return await response.json();
+      } catch (err) {
+        console.error("API помилка:", err);
+        tg.showAlert("Помилка з'єднання з ботом");
+        return { error: "Помилка з'єднання" };
+      }
     }
+
+    async function loadProfile() {
+      const data = await apiRequest('/api/student/profile');
+
+      if (data.error) {
+        document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
+        return;
+      }
+
+      document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
+      document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+      document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+
+      const subjectsDiv = document.getElementById("subjects-balance");
+      subjectsDiv.innerHTML = data.subjects.map(s => `
+        <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+      `).join('');
+
+      renderCalendar(data.lesson_dates, data.daily_details);
+    }
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    function renderCalendar(lessonDates, dailyDetails) {
+      const container = document.getElementById("calendar-container");
+      container.innerHTML = "";
+
+      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпня", "вересня", "жовтень", "листопад", "грудня"];
+
+    const navDiv = document.createElement("div");
+    navDiv.style.display = "flex";
+    navDiv.style.justifyContent = "space-between";
+    navDiv.style.marginBottom = "15px";
+
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "←";
+    prevButton.onclick = () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      drawMonth(currentYear, currentMonth);
+    };
+
+    const nextButton = document.createElement("button");
+    nextButton.textContent = "→";
+    nextButton.onclick = () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      drawMonth(currentYear, currentMonth);
+    };
+
+    const title = document.createElement("h3");
+    title.id = "calendar-title";
+
+    navDiv.appendChild(prevButton);
+    navDiv.appendChild(title);
+    navDiv.appendChild(nextButton);
+
+    container.appendChild(navDiv);
+
+    const div = document.createElement("div");
+    div.className = "month-card";
+    container.appendChild(div);
+
+    function drawMonth(year, month) {
+      title.textContent = `${monthsUa[month]} ${year}`;
+
+      div.style.opacity = "0";
+      div.style.transition = "opacity 0.3s";
+      div.innerHTML = "";
+
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "calendar-header";
+      for (const d of ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]) {
+        const span = document.createElement("span");
+        span.textContent = d;
+        headerDiv.appendChild(span);
+      }
+      div.appendChild(headerDiv);
+
+      const grid = document.createElement("div");
+      grid.className = "calendar-grid";
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // Порожні клітинки
+      for (let i = 0; i < adjustedFirstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "calendar-day empty";
+        grid.appendChild(empty);
+      }
+
+      // Дні місяця
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "calendar-day";
+
+        const dayDate = new Date(year, month, day);
+        const dayStr = dayDate.toISOString().slice(0, 10);
+
+        if (lessonDates.includes(dayStr)) {
+          dayDiv.className += " lesson";
+          dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
+        } else {
+          dayDiv.className += " other";
+        }
+
+        dayDiv.textContent = day;
+        grid.appendChild(dayDiv);
+      }
+
+      div.appendChild(grid);
+
+      setTimeout(() => {
+        div.style.opacity = "1";
+      }, 100);
+    }
+
     drawMonth(currentYear, currentMonth);
-  };
-
-  const nextButton = document.createElement("button");
-  nextButton.textContent = "→";
-  nextButton.onclick = () => {
-    currentMonth++;
-    if (currentMonth > 11) {
-      currentMonth = 0;
-      currentYear++;
-    }
-
-    // Обмеження: не далі поточного місяця
-    if (currentYear > initialYear || (currentYear === initialYear && currentMonth > initialMonth)) {
-      currentMonth = initialMonth;
-      currentYear = initialYear;
-    }
-
-    drawMonth(currentYear, currentMonth);
-  };
-
-  const title = document.createElement("h3");
-  title.id = "calendar-title";
-  title.onclick = () => {
-    const monthCard = document.getElementById("month-card");
-    monthCard.classList.toggle("collapsed");
-  };
-  title.style.cursor = "pointer";
-
-  navDiv.appendChild(prevButton);
-  navDiv.appendChild(title);
-  navDiv.appendChild(nextButton);
-
-  container.appendChild(navDiv);
-
-  const div = document.createElement("div");
-  div.id = "month-card";
-  div.className = "month-card";
-  container.appendChild(div);
-
-  drawMonth(currentYear, currentMonth);
-}
-
-function drawMonth(year, month) {
-  const title = document.getElementById("calendar-title");
-  const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересня", "жовтень", "листопад", "грудня"];
-  title.textContent = `${monthsUa[month]} ${year}`;
-
-  const div = document.getElementById("month-card");
-  div.style.opacity = "0";
-  div.style.transition = "opacity 0.3s";
-  div.innerHTML = "";
-
-  const headerDiv = document.createElement("div");
-  headerDiv.className = "calendar-header";
-  for (const d of ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]) {
-    const span = document.createElement("span");
-    span.textContent = d;
-    headerDiv.appendChild(span);
-  }
-  div.appendChild(headerDiv);
-
-  const grid = document.createElement("div");
-  grid.className = "calendar-grid";
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  // Порожні клітинки
-  for (let i = 0; i < adjustedFirstDay; i++) {
-    const empty = document.createElement("div");
-    empty.className = "calendar-day empty";
-    grid.appendChild(empty);
   }
 
-  // Дні місяця
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dayDiv = document.createElement("div");
-    dayDiv.className = "calendar-day";
+    function showDayDetail(dayStr, details) {
+      if (!details || details.total === 0) {
+        document.getElementById("day-details").innerHTML = "За цю дату немає нарахувань.";
+        return;
+      }
 
-    const dayDate = new Date(year, month, day, 0, 0, 0, 0);  // UTC, щоб уникнути зсуву
-    const dayStr = dayDate.toISOString().slice(0, 10);
+      let text = `<strong>${dayStr}</strong><br><br>`;
+      text += `Сумарно: ${details.total} 🪙<br><br>`;
+      for (let crit of details.criteria) {
+        text += `✓ ${crit.criterion} (+${crit.coins} монет)<br>`;
+      }
 
-    if (lessonDates.includes(dayStr)) {
-      dayDiv.className += " lesson";
-      dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
-    } else {
-      dayDiv.className += " other";
+      document.getElementById("day-details").innerHTML = text;
     }
 
-    dayDiv.textContent = day;
-    grid.appendChild(dayDiv);
-  }
+    tg.MainButton.setText("Оновити").show();
+    tg.MainButton.onClick(loadProfile);
 
-  div.appendChild(grid);
-
-  setTimeout(() => {
-    div.style.opacity = "1";
-  }, 100);
-}
+    loadProfile();
   </script>
 </body>
 </html>

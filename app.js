@@ -3,7 +3,7 @@ tg.expand();
 tg.ready();
 
 // Твій поточний ngrok URL
-const BOT_API_URL = "http://127.0.0.1:4040";  // ← Онови після перезапуску ngrok
+const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← Онови після перезапуску ngrok
 
 async function apiRequest(endpoint) {
   try {

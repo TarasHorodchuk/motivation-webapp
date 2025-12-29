@@ -3,42 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Адмін-панель</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Адмін-панель 👨‍🏫</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Alpine.js для реактивності -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .animate-fade {
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Адмін-панель 👨‍🏫</h1>
-
-    <div class="card">
-      <h2>Почати урок</h2>
-      <select id="class-select">
-        <option value="">Обери клас</option>
-        <option value="7.1">7.1</option>
-        <option value="7.2">7.2</option>
-        <!-- Додай свої класи -->
-      </select>
-      <select id="subject-select">
-        <option value="">Обери предмет</option>
-        <option value="Алгебра">Алгебра</option>
-        <option value="Геометрія">Геометрія</option>
-      </select>
-      <button class="btn" onclick="startLesson()">Почати урок</button>
+<body class="text-white p-4">
+  <div class="max-w-5xl mx-auto" x-data="adminPanel()">
+    <!-- Привітання -->
+    <div class="text-center mb-8 animate-fade">
+      <h1 class="text-4xl font-bold mb-2">Адмін-панель 👨‍🏫</h1>
+      <p class="text-xl opacity-90" x-text="`Вітаю, ${adminName}!`"></p>
     </div>
 
-    <div class="card" id="lesson-section" style="display:none;">
-      <h2>Оцінювання уроку</h2>
-      <div id="lesson-content">Завантажуємо...</div>
+    <!-- Tabs -->
+    <div class="flex flex-wrap justify-center gap-4 mb-8">
+      <button @click="activeTab = 'classes'" :class="{'bg-white bg-opacity-30': activeTab === 'classes'}" class="px-6 py-3 rounded-full font-medium transition">Класи та учні</button>
+      <button @click="activeTab = 'subjects'" :class="{'bg-white bg-opacity-30': activeTab === 'subjects'}" class="px-6 py-3 rounded-full font-medium transition">Предмети</button>
+      <button @click="activeTab = 'student'" :class="{'bg-white bg-opacity-30': activeTab === 'student'}" class="px-6 py-3 rounded-full font-medium transition">Пошук учня</button>
+      <button @click="activeTab = 'lesson'" :class="{'bg-white bg-opacity-30': activeTab === 'lesson'}" class="px-6 py-3 rounded-full font-medium transition">Почати пару</button>
     </div>
 
-    <div class="card">
-      <h2>Критерії</h2>
-      <div id="criteria-list">Завантажуємо...</div>
-      <input type="text" id="new-crit-name" placeholder="Назва критерію">
-      <input type="number" id="new-crit-weight" placeholder="Вага (монет)" step="0.5">
-      <button class="btn" onclick="addCriterion()">Додати критерій</button>
+    <!-- === 1. Класи та учні === -->
+    <div x-show="activeTab === 'classes'" class="space-y-6 animate-fade">
+      <div class="glass p-6">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <i data-lucide="users"></i> Класи та учні
+        </h2>
+
+        <template x-for="cls in classes" :key="cls.id">
+          <div class="mb-8 p-6 bg-white bg-opacity-10 rounded-2xl">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-bold" x-text="cls.name"></h3>
+              <button @click="deleteClass(cls.id)" class="text-red-300 hover:text-red-100">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+
+            <!-- Таблиця учнів -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="border-b border-white border-opacity-20">
+                    <th class="py-3">ПІБ</th>
+                    <th class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)">Алгебра</th>
+                    <th class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)">Геометрія</th>
+                    <th class="py-3 text-center" x-show="!isMiddleOrHigh(cls.name)">Математика</th>
+                    <th class="py-3 text-center">Загалом</th>
+                    <th class="py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="student in cls.students" :key="student.id">
+                    <tr class="border-b border-white border-opacity-10">
+                      <td class="py-3" x-text="student.last_name + ' ' + student.first_name"></td>
+                      <td class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Алгебра') + ' 🪙'"></td>
+                      <td class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Геометрія') + ' 🪙'"></td>
+                      <td class="py-3 text-center" x-show="!isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Математика') + ' 🪙'"></td>
+                      <td class="py-3 text-center font-bold" x-text="student.total_coins + ' 🪙'"></td>
+                      <td class="py-3 text-right">
+                        <button @click="removeStudent(student.id)" class="text-red-300">
+                          <i data-lucide="x"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                  <tr x-show="cls.students.length === 0">
+                    <td colspan="5" class="py-6 text-center opacity-70">Учні відсутні</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Додати учня -->
+            <button @click="openAddStudentModal(cls.id, cls.name)" class="mt-4 px-5 py-2 bg-green-600 hover:bg-green-500 rounded-full transition flex items-center gap-2 mx-auto">
+              <i data-lucide="plus"></i> Додати учня
+            </button>
+          </div>
+        </template>
+
+        <!-- Додати клас -->
+        <button @click="openAddClassModal()" class="w-full py-4 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-2xl transition flex items-center justify-center gap-3 text-lg font-medium">
+          <i data-lucide="plus-circle"></i> Додати новий клас
+        </button>
+      </div>
     </div>
+
+    <!-- Інші вкладки будуть додані в наступних повідомленнях (щоб не перевантажувати) -->
+
+    <!-- Модальні вікна (будуть нижче) -->
   </div>
 
   <script>
@@ -46,20 +129,56 @@
     tg.expand();
     tg.ready();
 
-    function startLesson() {
-      tg.showAlert("Урок почато (поки тест)");
-      // Пізніше тут запит до API
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← оновлюй свій ngrok
+
+    async function api(endpoint, body = {}) {
+      try {
+        const res = await fetch(`${BOT_API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, initData: tg.initData })
+        });
+        return await res.json();
+      } catch (err) {
+        tg.showAlert("Помилка з'єднання");
+        return { error: "network" };
+      }
     }
 
-    function addCriterion() {
-      tg.showAlert("Критерій додано (поки тест)");
-      // Пізніше тут запит до API
-    }
+    function adminPanel() {
+      return {
+        adminName: "Вчителю",
+        activeTab: 'classes',
+        classes: [],
 
-    tg.MainButton.setText("Оновити").show();
-    tg.MainButton.onClick(() => {
-      tg.showAlert("Оновлення адмін-панелі (поки тест)");
-    });
+        init() {
+          this.loadAdminData();
+          lucide.createIcons();
+        },
+
+        async loadAdminData() {
+          const data = await api('/api/admin/data');
+          if (data.error) {
+            tg.showAlert("Помилка завантаження даних");
+            return;
+          }
+          this.adminName = data.admin_name || "Вчителю";
+          this.classes = data.classes || [];
+        },
+
+        isMiddleOrHigh(className) {
+          const num = parseInt(className);
+          return num >= 7;
+        },
+
+        getCoins(student, subjectName) {
+          const subj = student.subject_balances.find(s => s.name === subjectName);
+          return subj ? subj.coins : 0;
+        },
+
+        // Модалки та інші функції додамо в наступному повідомленні
+      }
+    }
   </script>
 </body>
 </html>

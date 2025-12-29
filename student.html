@@ -53,6 +53,7 @@
         return await response.json();
       } catch (err) {
         console.error("API помилка:", err);
+        tg.showAlert("Помилка з'єднання з ботом");
         return { error: "Помилка з'єднання" };
       }
     }
@@ -75,6 +76,16 @@
       `).join('');
 
       renderCalendar(data.lesson_dates, data.daily_details);
+
+      window.showDayDetail = function(dayStr) {
+        const details = data.daily_details[dayStr] || { total: 0, criteria: [] };
+        let text = `<strong>${dayStr}</strong><br><br>`;
+        text += `Сумарно: ${details.total} 🪙<br><br>`;
+        for (let crit of details.criteria) {
+          text += `✓ ${crit.criterion} (+${crit.coins} монет)<br>`;
+        }
+        document.getElementById("day-details").innerHTML = text;
+      };
     }
 
     function renderCalendar(lessonDates, dailyDetails) {
@@ -82,15 +93,12 @@
       container.innerHTML = "";
 
       const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
-
       const months = [
-        { year: currentYear, month: currentMonth },
-        { year: currentMonth === 0 ? currentYear - 1 : currentYear, month: currentMonth === 0 ? 11 : currentMonth - 1 }
+        { year: today.getFullYear(), month: today.getMonth() },
+        { year: today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear(), month: today.getMonth() === 0 ? 11 : today.getMonth() - 1 }
       ];
 
-      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудня"];
+      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпня", "вересня", "жовтень", "листопад", "грудня"];
 
       months.forEach(m => {
         const div = document.createElement("div");
@@ -99,92 +107,49 @@
 
         div.innerHTML = `<h3>${monthsUa[m.month]} ${m.year}</h3>`;
 
-        const table = document.createElement("table");
-        table.style.width = "100%";
-        table.style.borderCollapse = "collapse";
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "calendar-header";
+        for (const d of ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]) {
+          const span = document.createElement("span");
+          span.textContent = d;
+          headerDiv.appendChild(span);
+        }
+        div.appendChild(headerDiv);
 
-        const header = table.insertRow();
-        ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
-          const th = document.createElement("th");
-          th.textContent = d;
-          th.style.padding = "10px";
-          th.style.textAlign = "center";
-          header.appendChild(th);
-        });
+        const grid = document.createElement("div");
+        grid.className = "calendar-grid";
 
         const firstDay = new Date(m.year, m.month, 1).getDay();
         const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
 
-        let row = table.insertRow();
-        let dayCount = 1;
-
+        // Empty cells
         for (let i = 1; i < (firstDay === 0 ? 7 : firstDay); i++) {
-          row.insertCell();
+          const empty = document.createElement("div");
+          empty.className = "calendar-day empty";
+          grid.appendChild(empty);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
-          const cell = row.insertCell();
-          cell.style.padding = "10px";
-          cell.style.textAlign = "center";
-          cell.style.border = "1px solid rgba(255,255,255,0.2)";
-          cell.style.height = "50px";
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "calendar-day";
 
           const dayDate = new Date(m.year, m.month, day);
           const dayStr = dayDate.toISOString().slice(0, 10);
 
           if (lessonDates.includes(dayStr)) {
-            const button = document.createElement("button");
-            button.textContent = day;
-            button.style.background = "#4CAF50";
-            button.style.color = "white";
-            button.style.border = "none";
-            button.style.padding = "10px";
-            button.style.borderRadius = "8px";
-            button.style.width = "100%";
-            button.style.cursor = "pointer";
-            button.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
-            cell.appendChild(button);
+            dayDiv.className += " lesson";
+            dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
           } else {
-            cell.textContent = day;
-            cell.style.color = "#888";
+            dayDiv.className += " other";
           }
 
-          if ((firstDay === 0 ? 7 : firstDay) + day - 1 % 7 === 0 && day < daysInMonth) {
-            row = table.insertRow();
-          }
+          dayDiv.textContent = day;
+          grid.appendChild(dayDiv);
         }
 
-        div.appendChild(table);
+        div.appendChild(grid);
         container.appendChild(div);
       });
-    }
-
-    function showDayDetail(dayStr, details) {
-      const monthsUa = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
-      const dayObj = new Date(dayStr);
-      const dayFormatted = `${dayObj.getDate()} ${monthsUa[dayObj.getMonth()]} ${dayObj.getFullYear()}`;
-      const dayOfWeek = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота", "неділя"][dayObj.getDay()];
-
-      let text = `<strong>${dayFormatted} (${dayOfWeek})</strong>\n\n`;
-
-      if (details.total === 0) {
-        text += "За цю дату немає нарахувань.";
-      } else {
-        text += `Сумарно: ${details.total} 🪙\n\n`;
-        for (let crit of details.criteria) {
-          text += `✓ ${crit.criterion} (+${crit.coins} монет)\n`;
-        }
-      }
-
-      document.getElementById("day-details").innerHTML = text.replace(/\n/g, '<br>');
-    }
-
-    function buyBonus(bonus) {
-      tg.showAlert(`Куплено +${bonus} бал(и) (поки тест)`);
-    }
-
-    function buyRemoveWarning() {
-      tg.showAlert("Зауваження знято (поки тест)");
     }
 
     tg.MainButton.setText("Оновити").show();

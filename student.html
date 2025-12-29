@@ -1,97 +1,27 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мій профіль</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-  <div class="container">
-    <h1>Мій профіль монет 🪙</h1>
-
-    <div class="card">
-      <h2 id="greeting">Привіт, учень!</h2>
-      <p id="class-info">Клас: завантажується...</p>
-      <div class="balance" id="total-balance">0 🪙</div>
-    </div>
-
-    <div class="card">
-      <h2>Баланс по предметах</h2>
-      <div id="subjects-balance">Завантажуємо...</div>
-    </div>
-
-    <div class="card">
-      <h2>Календар нарахувань</h2>
-      <div id="calendar">Завантажуємо календар...</div>
-    </div>
-
-    <div class="card">
-      <h2>Магазин бонусів</h2>
-      <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
-      <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
-      <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
-
-    loadStudentProfile();
-
-    function loadStudentProfile() {
-      const user = tg.initDataUnsafe.user;
-      document.getElementById("greeting").innerText = `Привіт, ${user.first_name || 'учень'}!`;
-
-      // Тут буде запит до API бота для завантаження реальних даних
-      fetch('/api/student/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: tg.initData })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          document.getElementById("error").style.display = "block";
-          return;
-        }
-
-        document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-        document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
-
-        const subjectsDiv = document.getElementById("subjects-balance");
-        subjectsDiv.innerHTML = data.subjects.map(s => `
-          <p>• ${s.name}: <strong>${s.coins} 🪙</strong></p>
-        `).join('');
-
-        const calendarDiv = document.getElementById("calendar");
-        calendarDiv.innerHTML = data.calendar.map(day => `
-          <p>• <strong>${day.date}</strong> (${day.subject}): +${day.total} 🪙</p>
-        `).join('') || "За цей період уроків ще не було.";
-      })
-      .catch(err => {
-        document.getElementById("subjects-balance").innerText = "Помилка завантаження";
-        console.error(err);
-      });
+<script>
+  async function loadStudentProfile() {
+    const data = await apiRequest('/student/profile');
+    if (data.error) {
+      tg.showAlert(data.error);
+      return;
     }
 
-    function buyBonus(bonus) {
-      const cost = bonus === 1 ? 10 : 20;
-      tg.showAlert(`Покупка +${bonus} бали за ${cost} монет. (Поки тест)`);
-      // Тут буде запит до API бота для покупки
-    }
+    document.getElementById("greeting").innerText = `Привіт, ${data.first_name}!`;
+    document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+    document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
 
-    function buyRemoveWarning() {
-      tg.showAlert("Зняття зауваження за 8 монет. (Поки тест)");
-      // Тут буде запит до API бота для зняття зауваження
-    }
+    const subjectsDiv = document.getElementById("subjects-balance");
+    subjectsDiv.innerHTML = data.subjects.map(s => `
+      <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+    `).join('');
 
-    tg.MainButton.setText("Оновити").show();
-    tg.MainButton.onClick(() => loadStudentProfile());
-  </script>
-</body>
-</html>
+    const calendarDiv = document.getElementById("calendar");
+    calendarDiv.innerHTML = data.calendar.map(d => `
+      <p><strong>${d.date}</strong>: ${d.subject} (+${d.total} 🪙)</p>
+    `).join('') || "Уроків не було.";
+  }
+
+  tg.MainButton.setText("Оновити").show();
+  tg.MainButton.onClick(loadStudentProfile);
+  loadStudentProfile();
+</script>

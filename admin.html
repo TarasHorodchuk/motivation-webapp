@@ -537,33 +537,34 @@
           }
         },
 
-        async submitLesson() {
+            async submitLesson() {
           if (!this.lesson.subjectId) {
             tg.showAlert("Оберіть предмет");
             return;
           }
 
-          let awardedStudents = new Set();
-          Object.values(this.lesson.selected).forEach(arr => {
-            if (arr) {
-              arr.forEach(id => awardedStudents.add(parseInt(id)));
+          // Формуємо структуру: { criterion_id: [student_ids] }
+          const selected_criteria = {};
+          Object.keys(this.lesson.selected).forEach(criterionId => {
+            if (this.lesson.selected[criterionId] && this.lesson.selected[criterionId].length > 0) {
+              selected_criteria[criterionId] = this.lesson.selected[criterionId].map(id => parseInt(id));
             }
           });
 
-          if (awardedStudents.size === 0) {
-            tg.showAlert("Оберіть хоча б одного учня");
+          if (Object.keys(selected_criteria).length === 0) {
+            tg.showAlert("Оберіть хоча б один критерій для хоча б одного учня");
             return;
           }
 
           const res = await api('/api/admin/give_coins_lesson', {
-            student_ids: Array.from(awardedStudents),
+            selected_criteria: selected_criteria,
             subject_id: this.lesson.subjectId
           });
 
           if (res.success) {
             tg.showPopup({ message: res.success });
-            await this.loadData();
-            this.lesson.selected = {};
+            await this.loadData(); // оновлюємо баланси
+            this.lesson.selected = {}; // очищаємо галочки
           } else {
             tg.showAlert(res.error || "Помилка нарахування");
           }

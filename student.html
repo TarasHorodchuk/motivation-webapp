@@ -9,28 +9,30 @@
 </head>
 <body>
   <div class="container">
-    <div id="loading" class="loading">Завантаження профілю...</div>
-    <div id="profile" style="display:none;">
-      <h1 id="greeting">Привіт!</h1>
-      <p id="class-info"></p>
-      <div class="balance" id="total-balance">0 🪙</div>
+    <h1 id="greeting">Завантаження...</h1>
+    <p id="class-info"></p>
+    <div class="balance" id="total-balance">0 🪙</div>
 
-      <div class="card">
-        <h2>Баланс по предметах</h2>
-        <div id="subjects-balance"></div>
-      </div>
+    <div class="card">
+      <h2>Баланс по предметах</h2>
+      <div id="subjects-balance"></div>
+    </div>
 
-      <div class="card">
-        <h2>Календар нарахувань</h2>
-        <div id="calendar"></div>
-      </div>
+    <div class="card">
+      <h2>Календар нарахувань</h2>
+      <div id="calendar-container"></div>
+    </div>
 
-      <div class="card">
-        <h2>Магазин бонусів</h2>
-        <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
-        <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
-        <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
-      </div>
+    <div class="card">
+      <h2>Деталі за день</h2>
+      <div id="day-details">Обери дату в календарі</div>
+    </div>
+
+    <div class="card">
+      <h2>Магазин бонусів</h2>
+      <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
+      <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
+      <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
     </div>
   </div>
 
@@ -39,8 +41,7 @@
     tg.expand();
     tg.ready();
 
-    // ТВІЙ NGROK URL (оновлюй після кожного перезапуску ngrok)
-    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← твій ngrok URL
 
     async function apiRequest(endpoint) {
       try {
@@ -60,12 +61,9 @@
       const data = await apiRequest('/api/student/profile');
 
       if (data.error) {
-        document.getElementById("loading").innerText = "Помилка: " + data.error;
+        document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
         return;
       }
-
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("profile").style.display = "block";
 
       document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
       document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
@@ -76,14 +74,113 @@
         <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
       `).join('');
 
-      const calendarDiv = document.getElementById("calendar");
-      if (data.calendar.length === 0) {
-        calendarDiv.innerHTML = "<p>Уроків ще не було</p>";
-      } else {
-        calendarDiv.innerHTML = "<h3>Останні уроки:</h3>" + data.calendar.map(day => `
-          <p><strong>${day.date}</strong>: ${day.subject} (+${day.total} 🪙)</p>
-        `).join('');
+      // Календар
+      renderCalendar(data.lesson_dates, data.daily_details);
+
+      // Деталі за день (при натисканні)
+      window.showDayDetail = function(dayStr) {
+        const details = data.daily_details[dayStr] || { total: 0, criteria: [] };
+        let text = `<strong>${dayStr}</strong>\n\n`;
+        text += `Сумарно: ${details.total} 🪙\n\n`;
+        for (let crit of details.criteria) {
+          text += `✓ ${crit.criterion} (+${crit.coins} монет)\n`;
+        }
+        document.getElementById("day-details").innerHTML = text;
+      };
+    }
+
+    function renderCalendar(lessonDates, dailyDetails) {
+      const container = document.getElementById("calendar-container");
+      container.innerHTML = "";
+
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // Поточний місяць
+      container.appendChild(createMonthCalendar(currentYear, currentMonth, lessonDates, dailyDetails));
+
+      // Попередній місяць
+      let prevMonth = currentMonth - 1;
+      let prevYear = currentYear;
+      if (prevMonth < 0) {
+        prevMonth = 11;
+        prevYear--;
       }
+      container.appendChild(createMonthCalendar(prevYear, prevMonth, lessonDates, dailyDetails));
+    }
+
+    function createMonthCalendar(year, month, lessonDates, dailyDetails) {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.style.marginBottom = "20px";
+
+      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
+      div.innerHTML = `<h3>${monthsUa[month]} ${year}</h3>`;
+
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+
+      const header = table.insertRow();
+      const daysHeader = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+      daysHeader.forEach(d => {
+        const th = document.createElement("th");
+        th.textContent = d;
+        th.style.padding = "10px";
+        th.style.textAlign = "center";
+        header.appendChild(th);
+      });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let row = table.insertRow();
+      let dayCount = 1;
+
+      // Порожні клітинки перед першим днем
+      for (let i = 1; i < (firstDay === 0 ? 7 : firstDay); i++) {
+        row.insertCell();
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = row.insertCell();
+        cell.style.padding = "10px";
+        cell.style.textAlign = "center";
+        cell.style.border = "1px solid rgba(255,255,255,0.2)";
+
+        const dayDate = new Date(year, month, day);
+        const dayStr = dayDate.toISOString().slice(0, 10);
+
+        if (lessonDates.includes(dayStr)) {
+          const button = document.createElement("button");
+          button.textContent = day;
+          button.style.background = "#4CAF50";
+          button.style.color = "white";
+          button.style.border = "none";
+          button.style.padding = "10px";
+          button.style.borderRadius = "8px";
+          button.style.width = "100%";
+          button.onclick = () => showDayDetail(dayStr);
+          cell.appendChild(button);
+        } else {
+          cell.textContent = day;
+          cell.style.color = "#888";
+        }
+
+        if ((firstDay === 0 ? 7 : firstDay) + day - 1 % 7 === 0 && day < daysInMonth) {
+          row = table.insertRow();
+        }
+      }
+
+      div.appendChild(table);
+      return div;
+    }
+
+    function showDayDetail(dayStr) {
+      // Ця функція буде викликана з кнопки — дані вже є в loadProfile
+      // Ми використаємо глобальну змінну або перезавантажимо, але для простоти — покажемо тест
+      tg.showAlert(`Деталі за ${dayStr} (поки тест)`);
     }
 
     function buyBonus(bonus) {

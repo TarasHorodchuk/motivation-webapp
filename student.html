@@ -1,27 +1,89 @@
-<script>
-  async function loadStudentProfile() {
-    const data = await apiRequest('/student/profile');
-    if (data.error) {
-      tg.showAlert(data.error);
-      return;
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мій профіль</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 id="greeting">Завантаження...</h1>
+
+    <div class="card">
+      <p id="class-info">Клас: завантажується...</p>
+      <div class="balance" id="total-balance">0 🪙</div>
+    </div>
+
+    <div class="card">
+      <h2>Баланс по предметах</h2>
+      <div id="subjects-balance">Завантажуємо...</div>
+    </div>
+
+    <div class="card">
+      <h2>Календар нарахувань</h2>
+      <div id="calendar">Завантажуємо календар...</div>
+    </div>
+
+    <div class="card">
+      <h2>Магазин бонусів</h2>
+      <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
+      <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
+      <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+
+    async function loadProfile() {
+      try {
+        const response = await fetch('/api/student/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData })
+        });
+        const data = await response.json();
+
+        if (data.error) {
+          tg.showAlert(data.error);
+          return;
+        }
+
+        document.getElementById("greeting").innerText = `Привіт, ${data.first_name}!`;
+        document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+        document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+
+        const subjectsDiv = document.getElementById("subjects-balance");
+        subjectsDiv.innerHTML = data.subjects.map(s => `
+          <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+        `).join('');
+
+        const calendarDiv = document.getElementById("calendar");
+        calendarDiv.innerHTML = data.calendar.map(day => `
+          <p><strong>${day.date}</strong>: ${day.subject} (+${day.total} 🪙)</p>
+        `).join('') || "За цей період уроків ще не було.";
+      } catch (err) {
+        tg.showAlert("Помилка завантаження профілю");
+      }
     }
 
-    document.getElementById("greeting").innerText = `Привіт, ${data.first_name}!`;
-    document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-    document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+    function buyBonus(bonus) {
+      tg.showAlert(`Куплено +${bonus} бали (поки тест)`);
+      loadProfile();  // Оновлюємо баланс після покупки
+    }
 
-    const subjectsDiv = document.getElementById("subjects-balance");
-    subjectsDiv.innerHTML = data.subjects.map(s => `
-      <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
-    `).join('');
+    function buyRemoveWarning() {
+      tg.showAlert("Зауваження знято (поки тест)");
+      loadProfile();
+    }
 
-    const calendarDiv = document.getElementById("calendar");
-    calendarDiv.innerHTML = data.calendar.map(d => `
-      <p><strong>${d.date}</strong>: ${d.subject} (+${d.total} 🪙)</p>
-    `).join('') || "Уроків не було.";
-  }
-
-  tg.MainButton.setText("Оновити").show();
-  tg.MainButton.onClick(loadStudentProfile);
-  loadStudentProfile();
-</script>
+    tg.MainButton.setText("Оновити баланс").show();
+    tg.MainButton.onClick(loadProfile);
+    loadProfile();
+  </script>
+</body>
+</html>

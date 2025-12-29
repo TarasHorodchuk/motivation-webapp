@@ -20,7 +20,7 @@
 
     <div class="card">
       <h2>Календар нарахувань</h2>
-      <div id="calendar-container">Завантажуємо...</div>
+      <div id="calendar-container">Завантажуємо календар...</div>
     </div>
 
     <div class="card">
@@ -75,16 +75,6 @@
       `).join('');
 
       renderCalendar(data.lesson_dates, data.daily_details);
-
-      window.showDayDetail = function(dayStr) {
-        const details = data.daily_details[dayStr] || { total: 0, criteria: [] };
-        let text = `<strong>${dayStr}</strong>\n\n`;
-        text += `Сумарно: ${details.total} 🪙\n\n`;
-        for (let crit of details.criteria) {
-          text += `✓ ${crit.criterion} (+${crit.coins} монет)\n`;
-        }
-        document.getElementById("day-details").innerHTML = text.replace(/\n/g, '<br>');
-      };
     }
 
     function renderCalendar(lessonDates, dailyDetails) {
@@ -92,12 +82,15 @@
       container.innerHTML = "";
 
       const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+
       const months = [
-        { year: today.getFullYear(), month: today.getMonth() },
-        { year: today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear(), month: today.getMonth() === 0 ? 11 : today.getMonth() - 1 }
+        { year: currentYear, month: currentMonth },
+        { year: currentMonth === 0 ? currentYear - 1 : currentYear, month: currentMonth === 0 ? 11 : currentMonth - 1 }
       ];
 
-      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
+      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудня"];
 
       months.forEach(m => {
         const div = document.createElement("div");
@@ -114,7 +107,7 @@
         ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
           const th = document.createElement("th");
           th.textContent = d;
-          th.style.padding = "8px";
+          th.style.padding = "10px";
           th.style.textAlign = "center";
           header.appendChild(th);
         });
@@ -134,6 +127,7 @@
           cell.style.padding = "10px";
           cell.style.textAlign = "center";
           cell.style.border = "1px solid rgba(255,255,255,0.2)";
+          cell.style.height = "50px";
 
           const dayDate = new Date(m.year, m.month, day);
           const dayStr = dayDate.toISOString().slice(0, 10);
@@ -147,7 +141,8 @@
             button.style.padding = "10px";
             button.style.borderRadius = "8px";
             button.style.width = "100%";
-            button.onclick = () => showDayDetail(dayStr);
+            button.style.cursor = "pointer";
+            button.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
             cell.appendChild(button);
           } else {
             cell.textContent = day;
@@ -162,6 +157,26 @@
         div.appendChild(table);
         container.appendChild(div);
       });
+    }
+
+    function showDayDetail(dayStr, details) {
+      const monthsUa = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
+      const dayObj = new Date(dayStr);
+      const dayFormatted = `${dayObj.getDate()} ${monthsUa[dayObj.getMonth()]} ${dayObj.getFullYear()}`;
+      const dayOfWeek = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота", "неділя"][dayObj.getDay()];
+
+      let text = `<strong>${dayFormatted} (${dayOfWeek})</strong>\n\n`;
+
+      if (details.total === 0) {
+        text += "За цю дату немає нарахувань.";
+      } else {
+        text += `Сумарно: ${details.total} 🪙\n\n`;
+        for (let crit of details.criteria) {
+          text += `✓ ${crit.criterion} (+${crit.coins} монет)\n`;
+        }
+      }
+
+      document.getElementById("day-details").innerHTML = text.replace(/\n/g, '<br>');
     }
 
     function buyBonus(bonus) {

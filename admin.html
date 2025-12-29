@@ -5,123 +5,211 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Адмін-панель 👨‍🏫</title>
 
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Alpine.js для реактивності -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: white;
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
     }
     .glass {
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
-    .animate-fade {
-      animation: fadeIn 0.5s ease-out;
+    .modal {
+      animation: fadeIn 0.3s ease-out;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .btn-primary {
+      @apply bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-full transition transform hover:scale-105;
     }
   </style>
 </head>
-<body class="text-white p-4">
-  <div class="max-w-5xl mx-auto" x-data="adminPanel()">
+<body class="p-4 pb-20">
+  <div class="max-w-4xl mx-auto" x-data="adminPanel()" x-init="init()">
     <!-- Привітання -->
-    <div class="text-center mb-8 animate-fade">
-      <h1 class="text-4xl font-bold mb-2">Адмін-панель 👨‍🏫</h1>
-      <p class="text-xl opacity-90" x-text="`Вітаю, ${adminName}!`"></p>
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold mb-2">Адмін-панель</h1>
+      <p class="text-xl opacity-90" x-text="`Вітаю, ${adminName}! 👨‍🏫`"></p>
     </div>
 
     <!-- Tabs -->
-    <div class="flex flex-wrap justify-center gap-4 mb-8">
-      <button @click="activeTab = 'classes'" :class="{'bg-white bg-opacity-30': activeTab === 'classes'}" class="px-6 py-3 rounded-full font-medium transition">Класи та учні</button>
-      <button @click="activeTab = 'subjects'" :class="{'bg-white bg-opacity-30': activeTab === 'subjects'}" class="px-6 py-3 rounded-full font-medium transition">Предмети</button>
-      <button @click="activeTab = 'student'" :class="{'bg-white bg-opacity-30': activeTab === 'student'}" class="px-6 py-3 rounded-full font-medium transition">Пошук учня</button>
-      <button @click="activeTab = 'lesson'" :class="{'bg-white bg-opacity-30': activeTab === 'lesson'}" class="px-6 py-3 rounded-full font-medium transition">Почати пару</button>
+    <div class="flex flex-wrap justify-center gap-3 mb-10">
+      <button @click="activeTab = 'classes'" :class="{'glass shadow-lg': activeTab === 'classes'}" class="px-6 py-3 rounded-2xl font-medium transition">Класи та учні</button>
+      <button @click="activeTab = 'subjects'" :class="{'glass shadow-lg': activeTab === 'subjects'}" class="px-6 py-3 rounded-2xl font-medium transition">Предмети</button>
+      <button @click="activeTab = 'search'" :class="{'glass shadow-lg': activeTab === 'search'}" class="px-6 py-3 rounded-2xl font-medium transition">Пошук учня</button>
+      <button @click="activeTab = 'lesson'" :class="{'glass shadow-lg': activeTab === 'lesson'}" class="px-6 py-3 rounded-2xl font-medium transition">Почати пару</button>
     </div>
 
-    <!-- === 1. Класи та учні === -->
-    <div x-show="activeTab === 'classes'" class="space-y-6 animate-fade">
-      <div class="glass p-6">
-        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-          <i data-lucide="users"></i> Класи та учні
-        </h2>
-
+    <!-- 1. Класи та учні -->
+    <div x-show="activeTab === 'classes'" class="space-y-8">
+      <div class="glass p-8">
         <template x-for="cls in classes" :key="cls.id">
-          <div class="mb-8 p-6 bg-white bg-opacity-10 rounded-2xl">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-bold" x-text="cls.name"></h3>
-              <button @click="deleteClass(cls.id)" class="text-red-300 hover:text-red-100">
-                <i data-lucide="trash-2"></i>
+          <div class="mb-10 pb-10 border-b border-white border-opacity-10 last:border-0">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold" x-text="cls.name"></h3>
+              <button @click="deleteClass(cls.id)" class="text-red-400 hover:text-red-300">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
               </button>
             </div>
 
-            <!-- Таблиця учнів -->
             <div class="overflow-x-auto">
-              <table class="w-full text-left">
+              <table class="w-full">
                 <thead>
-                  <tr class="border-b border-white border-opacity-20">
-                    <th class="py-3">ПІБ</th>
-                    <th class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)">Алгебра</th>
-                    <th class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)">Геометрія</th>
-                    <th class="py-3 text-center" x-show="!isMiddleOrHigh(cls.name)">Математика</th>
-                    <th class="py-3 text-center">Загалом</th>
-                    <th class="py-3"></th>
+                  <tr class="text-left opacity-80 border-b border-white border-opacity-20">
+                    <th class="pb-4">ПІБ</th>
+                    <th class="pb-4 text-center" x-show="isHighClass(cls.name)">Алгебра</th>
+                    <th class="pb-4 text-center" x-show="isHighClass(cls.name)">Геометрія</th>
+                    <th class="pb-4 text-center" x-show="!isHighClass(cls.name)">Математика</th>
+                    <th class="pb-4 text-center">Загалом</th>
+                    <th class="pb-4"></th>
                   </tr>
                 </thead>
                 <tbody>
                   <template x-for="student in cls.students" :key="student.id">
-                    <tr class="border-b border-white border-opacity-10">
-                      <td class="py-3" x-text="student.last_name + ' ' + student.first_name"></td>
-                      <td class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Алгебра') + ' 🪙'"></td>
-                      <td class="py-3 text-center" x-show="isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Геометрія') + ' 🪙'"></td>
-                      <td class="py-3 text-center" x-show="!isMiddleOrHigh(cls.name)" x-text="getCoins(student, 'Математика') + ' 🪙'"></td>
-                      <td class="py-3 text-center font-bold" x-text="student.total_coins + ' 🪙'"></td>
-                      <td class="py-3 text-right">
-                        <button @click="removeStudent(student.id)" class="text-red-300">
-                          <i data-lucide="x"></i>
+                    <tr class="border-b border-white border-opacity-5 hover:bg-white hover:bg-opacity-5 transition">
+                      <td class="py-4" x-text="student.last_name + ' ' + student.first_name"></td>
+                      <td class="py-4 text-center" x-show="isHighClass(cls.name)" x-text="getCoins(student, 'Алгебра') + ' 🪙'"></td>
+                      <td class="py-4 text-center" x-show="isHighClass(cls.name)" x-text="getCoins(student, 'Геометрія') + ' 🪙'"></td>
+                      <td class="py-4 text-center" x-show="!isHighClass(cls.name)" x-text="getCoins(student, 'Математика') + ' 🪙'"></td>
+                      <td class="py-4 text-center font-bold" x-text="student.total_coins + ' 🪙'"></td>
+                      <td class="py-4 text-right">
+                        <button @click="removeStudent(student.id, cls.id)" class="text-red-400 hover:text-red-300">
+                          <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                       </td>
                     </tr>
                   </template>
-                  <tr x-show="cls.students.length === 0">
-                    <td colspan="5" class="py-6 text-center opacity-70">Учні відсутні</td>
-                  </tr>
                 </tbody>
               </table>
             </div>
 
-            <!-- Додати учня -->
-            <button @click="openAddStudentModal(cls.id, cls.name)" class="mt-4 px-5 py-2 bg-green-600 hover:bg-green-500 rounded-full transition flex items-center gap-2 mx-auto">
-              <i data-lucide="plus"></i> Додати учня
+            <button @click="openAddStudentModal(cls.id, cls.name)" class="mt-6 btn-primary flex items-center gap-2">
+              <i data-lucide="plus"></i> Додати учня до класу
             </button>
           </div>
         </template>
 
-        <!-- Додати клас -->
-        <button @click="openAddClassModal()" class="w-full py-4 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-2xl transition flex items-center justify-center gap-3 text-lg font-medium">
-          <i data-lucide="plus-circle"></i> Додати новий клас
+        <button @click="openAddClassModal()" class="w-full py-5 glass hover:bg-white hover:bg-opacity-10 transition flex items-center justify-center gap-3 text-xl font-medium">
+          <i data-lucide="plus-circle" class="w-8 h-8"></i>
+          Додати новий клас
         </button>
       </div>
     </div>
 
-    <!-- Інші вкладки будуть додані в наступних повідомленнях (щоб не перевантажувати) -->
+    <!-- 2. Предмети (автоматично додаються при створенні класу) -->
+    <div x-show="activeTab === 'subjects'" class="glass p-8 text-center text-lg opacity-80">
+      <i data-lucide="info" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+      <p>Предмети додаються автоматично при створенні класу:</p>
+      <p class="mt-4">• 5–6 класи → тільки <strong>Математика</strong></p>
+      <p>• 7–11 класи → <strong>Алгебра</strong> та <strong>Геометрія</strong></p>
+    </div>
 
-    <!-- Модальні вікна (будуть нижче) -->
+    <!-- 3. Пошук учня -->
+    <div x-show="activeTab === 'search'" class="glass p-8">
+      <h2 class="text-2xl font-bold mb-6">Пошук учня за прізвищем</h2>
+      <input type="text" x-model="searchQuery" placeholder="Введіть прізвище..." class="w-full p-4 rounded-2xl bg-white bg-opacity-10 focus:bg-opacity-20 outline-none transition">
+
+      <div class="mt-8" x-show="filteredStudents.length > 0">
+        <template x-for="student in filteredStudents">
+          <div class="mb-6 p-6 glass rounded-2xl">
+            <h3 class="text-xl font-bold" x-text="student.last_name + ' ' + student.first_name + ' (' + student.class_name + ')'"></h3>
+            <table class="w-full mt-4">
+              <tr x-for="subj in student.subject_balances">
+                <td class="py-2" x-text="subj.name"></td>
+                <td class="py-2 text-right font-bold" x-text="subj.coins + ' 🪙'"></td>
+              </tr>
+              <tr class="border-t border-white border-opacity-20">
+                <td class="py-3 font-bold">Загалом</td>
+                <td class="py-3 text-right font-bold" x-text="student.total_coins + ' 🪙'"></td>
+              </tr>
+            </table>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- 4. Почати пару -->
+    <div x-show="activeTab === 'lesson'" class="glass p-8">
+      <h2 class="text-2xl font-bold mb-6">Почати пару</h2>
+      <select x-model="lesson.classId" @change="loadLessonData()" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-4">
+        <option value="">Оберіть клас</option>
+        <template x-for="cls in classes">
+          <option :value="cls.id" x-text="cls.name"></option>
+        </template>
+      </select>
+
+      <select x-model="lesson.subjectId" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-6">
+        <option value="">Оберіть предмет</option>
+        <template x-for="subj in lesson.subjects">
+          <option :value="subj.id" x-text="subj.name"></option>
+        </template>
+      </select>
+
+      <div x-show="lesson.students.length > 0" class="space-y-6">
+        <template x-for="criterion in lesson.criteria">
+          <div class="p-6 glass rounded-2xl">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-lg font-bold" x-text="criterion.name + ' (+' + criterion.weight + ' 🪙)'"></h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <template x-for="student in lesson.students">
+                <label class="flex items-center gap-3 cursor-pointer hover:bg-white hover:bg-opacity-10 p-3 rounded-xl transition">
+                  <input type="checkbox" :value="student.id" x-model="lesson.selected[student.id]">
+                  <span x-text="student.last_name + ' ' + student.first_name"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <button @click="submitLesson()" class="w-full btn-primary text-xl py-4">
+          Нарахувати бонуси
+        </button>
+
+        <button @click="confirmEndLesson()" class="w-full mt-4 bg-red-600 hover:bg-red-700 py-4 rounded-full text-xl font-medium transition" x-show="lesson.active">
+          Завершити урок
+        </button>
+      </div>
+    </div>
+
+    <!-- Модальні вікна -->
+    <!-- Додати клас -->
+    <div x-show="modals.addClass" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 modal">
+      <div class="glass p-8 rounded-3xl max-w-md w-full">
+        <h3 class="text-2xl font-bold mb-6">Додати клас</h3>
+        <input type="text" x-model="newClassName" placeholder="Наприклад: 7.1" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-6">
+        <div class="flex gap-4">
+          <button @click="addClass()" class="flex-1 btn-primary">Додати</button>
+          <button @click="modals.addClass = false" class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-full">Скасувати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Додати учня -->
+    <div x-show="modals.addStudent" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 modal">
+      <div class="glass p-8 rounded-3xl max-w-md w-full">
+        <h3 class="text-2xl font-bold mb-6" x-text="`Додати учня до класу ${currentClassName}`"></h3>
+        <input type="text" x-model="newStudent.first_name" placeholder="Ім'я" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-4">
+        <input type="text" x-model="newStudent.last_name" placeholder="Прізвище" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-4">
+        <input type="number" x-model="newStudent.telegram_id" placeholder="Telegram ID" class="w-full p-4 rounded-2xl bg-white bg-opacity-10 mb-6">
+        <div class="flex gap-4">
+          <button @click="addStudent()" class="flex-1 btn-primary">Додати</button>
+          <button @click="modals.addStudent = false" class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-full">Скасувати</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -129,20 +217,15 @@
     tg.expand();
     tg.ready();
 
-    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← оновлюй свій ngrok
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev"; // ← ОНОВЛЮЙ
 
     async function api(endpoint, body = {}) {
-      try {
-        const res = await fetch(`${BOT_API_URL}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...body, initData: tg.initData })
-        });
-        return await res.json();
-      } catch (err) {
-        tg.showAlert("Помилка з'єднання");
-        return { error: "network" };
-      }
+      const res = await fetch(`${BOT_API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, initData: tg.initData })
+      });
+      return await res.json();
     }
 
     function adminPanel() {
@@ -150,33 +233,130 @@
         adminName: "Вчителю",
         activeTab: 'classes',
         classes: [],
+        searchQuery: '',
+        lesson: { classId: '', subjectId: '', subjects: [], students: [], criteria: [], selected: {}, active: false },
+        modals: { addClass: false, addStudent: false },
+        newClassName: '',
+        currentClassId: null,
+        currentClassName: '',
+        newStudent: { first_name: '', last_name: '', telegram_id: '' },
 
-        init() {
-          this.loadAdminData();
+        async init() {
           lucide.createIcons();
+          await this.loadData();
         },
 
-        async loadAdminData() {
-          const data = await api('/api/admin/data');
-          if (data.error) {
-            tg.showAlert("Помилка завантаження даних");
-            return;
-          }
-          this.adminName = data.admin_name || "Вчителю";
-          this.classes = data.classes || [];
+        async loadData() {
+          const data = await api('/api/admin/full_data');
+          if (data.error) return tg.showAlert("Помилка завантаження");
+          this.adminName = data.admin_name;
+          this.classes = data.classes;
         },
 
-        isMiddleOrHigh(className) {
+        isHighClass(className) {
           const num = parseInt(className);
           return num >= 7;
         },
 
         getCoins(student, subjectName) {
-          const subj = student.subject_balances.find(s => s.name === subjectName);
-          return subj ? subj.coins : 0;
+          const s = student.subject_balances.find(x => x.name === subjectName);
+          return s ? s.coins : 0;
         },
 
-        // Модалки та інші функції додамо в наступному повідомленні
+        get filteredStudents() {
+          if (!this.searchQuery.trim()) return [];
+          const q = this.searchQuery.toLowerCase();
+          let results = [];
+          for (let cls of this.classes) {
+            for (let st of cls.students) {
+              if (st.last_name.toLowerCase().includes(q)) {
+                results.push({ ...st, class_name: cls.name });
+              }
+            }
+          }
+          return results;
+        },
+
+        openAddClassModal() {
+          this.newClassName = '';
+          this.modals.addClass = true;
+        },
+
+        async addClass() {
+          const res = await api('/api/admin/add_class', { class_name: this.newClassName });
+          if (res.success) {
+            tg.showPopup({ message: res.success }, () => {});
+            this.modals.addClass = false;
+            await this.loadData();
+          }
+        },
+
+        openAddStudentModal(classId, className) {
+          this.currentClassId = classId;
+          this.currentClassName = className;
+          this.newStudent = { first_name: '', last_name: '', telegram_id: '' };
+          this.modals.addStudent = true;
+        },
+
+        async addStudent() {
+          const res = await api('/api/admin/add_student', {
+            ...this.newStudent,
+            class_name: this.currentClassName,
+            telegram_id: parseInt(this.newStudent.telegram_id)
+          });
+          if (res.success) {
+            tg.showPopup({ message: res.success });
+            this.modals.addStudent = false;
+            await this.loadData();
+          } else {
+            tg.showAlert(res.error || "Помилка");
+          }
+        },
+
+        async deleteClass(id) {
+          tg.showPopup({ title: "Видалити клас?", message: "Всі учні та бонуси будуть втрачені", buttons: [{ type: 'destructive', text: 'Видалити', id: 'del' }, { type: 'cancel' }] }, async (btn) => {
+            if (btn === 'del') {
+              await api('/api/admin/delete_class', { class_id: id });
+              await this.loadData();
+            }
+          });
+        },
+
+        async removeStudent(studentId, classId) {
+          await api('/api/admin/delete_student', { student_id: studentId });
+          await this.loadData();
+        },
+
+        async loadLessonData() {
+          if (!this.lesson.classId) return;
+          const data = await api('/api/admin/lesson_data', { class_id: this.lesson.classId });
+          this.lesson.subjects = data.subjects;
+          this.lesson.students = data.students;
+          this.lesson.criteria = data.criteria;
+          this.lesson.selected = {};
+          this.lesson.subjectId = '';
+        },
+
+        async submitLesson() {
+          const selected = Object.keys(this.lesson.selected).filter(k => this.lesson.selected[k]);
+          if (selected.length === 0 || !this.lesson.subjectId) return tg.showAlert("Оберіть предмет та учнів");
+          const res = await api('/api/admin/give_coins_lesson', {
+            student_ids: selected,
+            subject_id: this.lesson.subjectId,
+            criterion_id: null // якщо буде вибір критерію — додамо
+          });
+          if (res.success) {
+            tg.showPopup({ message: "Бонуси нараховано!" });
+            await this.loadData();
+          }
+        },
+
+        async confirmEndLesson() {
+          tg.showPopup({ title: "Завершити урок?", message: "Після цього нарахування буде закрито", buttons: [{ type: 'ok' }, { type: 'cancel' }] }, () => {
+            this.lesson = { classId: '', subjectId: '', subjects: [], students: [], criteria: [], selected: {}, active: false };
+            tg.showAlert("Урок завершено");
+          });
+        }
       }
     }
   </script>

@@ -242,7 +242,7 @@
       </div>
     </div>
 
-    <!-- Почати пару — з успіхом і захистом від повтору -->
+        <!-- 4. Почати пару — з кнопкою "Оцінити всіх" -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -260,7 +260,6 @@
         </template>
       </select>
 
-      <!-- Форма оцінювання -->
       <div x-show="lesson.classId && lesson.subjectId && lesson.criteria.length > 0 && !lesson.success && !lesson.alreadyRated"
            class="space-y-8 animate-fade-in"
            x-transition:leave="transition ease-in duration-500"
@@ -273,10 +272,16 @@
 
         <template x-for="criterion in lesson.criteria" :key="criterion.id">
           <div class="glass p-6 rounded-3xl">
-            <h4 class="text-xl font-semibold mb-6 flex items-center gap-3">
-              <i data-lucide="award" class="w-7 h-7 text-yellow-300"></i>
-              <span x-text="criterion.name + ' (+' + criterion.weight + ' 🪙)'"></span>
-            </h4>
+            <div class="flex justify-between items-center mb-6">
+              <h4 class="text-xl font-semibold flex items-center gap-3">
+                <i data-lucide="award" class="w-7 h-7 text-yellow-300"></i>
+                <span x-text="criterion.name + ' (+' + criterion.weight + ' 🪙)'"></span>
+              </h4>
+              <button @click="selectAllForCriterion(criterion.id)"
+                      class="px-5 py-2 bg-green-600 hover:bg-green-500 rounded-full text-sm font-medium transition shadow">
+                Оцінити всіх
+              </button>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <template x-for="student in lesson.students">
@@ -338,7 +343,6 @@
         <p class="text-lg">Оберіть предмет</p>
       </div>
     </div>
-
     <!-- Модалки -->
     <div x-show="modals.addClass" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" x-transition>
       <div class="glass p-8 rounded-3xl max-w-md w-full">
@@ -613,6 +617,15 @@
           }
         },
 
+        selectAllForCriterion(criterionId) {
+          if (!this.lesson.students || this.lesson.students.length === 0) return;
+
+          // Ставимо всіх учнів для цього критерію
+          this.lesson.selected[criterionId] = this.lesson.students.map(st => st.id);
+
+          // Оновлюємо іконки
+          this.$nextTick(() => lucide.createIcons());
+        },
         async submitLesson() {
           if (!this.lesson.subjectId) {
             tg.showAlert("Оберіть предмет");

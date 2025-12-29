@@ -8,10 +8,10 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             margin: 0;
             padding: 0;
-            color: #333;
+            color: #fff;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -23,229 +23,229 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 50px;
-        }
-        .avatar-bg {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            margin: 0 auto 25px;
-            padding: 8px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            margin-bottom: 60px;
+            position: relative;
         }
         .avatar-wrapper {
             position: relative;
             display: inline-block;
+            width: 160px;
+            height: 160px;
+        }
+        .avatar-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #ff00cc, #3333ff, #ff00cc);
+            padding: 6px;
+            animation: pulse-ring 4s linear infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         .avatar {
-            width: 134px;
-            height: 134px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid white;
+            border: 6px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
         }
-        .avatar-default {
-            background: #aaa;
+        .avatar-default-svg {
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 56px;
-            color: white;
-            font-weight: bold;
         }
         .change-avatar-btn {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
+            bottom: 0;
+            right: 0;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
             color: white;
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            font-size: 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
             cursor: pointer;
+            transition: all 0.3s;
+        }
+        .change-avatar-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.3);
         }
         .name {
-            font-size: 34px;
+            font-size: 36px;
             font-weight: bold;
-            color: white;
-            margin: 10px 0 5px;
-            text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            margin: 20px 0 8px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         .role {
             font-size: 20px;
-            color: rgba(255,255,255,0.9);
+            opacity: 0.9;
             margin-bottom: 20px;
         }
         .coins {
             font-size: 24px;
-            color: white;
             font-weight: bold;
-            background: rgba(255,255,255,0.25);
-            padding: 10px 25px;
-            border-radius: 30px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 30px;
+            border-radius: 50px;
             display: inline-block;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
         .menu {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 8px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
         .menu-item {
-            padding: 24px 30px;
-            font-size: 20px;
-            color: #555;
-            border-bottom: 1px solid #eee;
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            transition: all 0.4s ease;
         }
-        .menu-item:last-child { border-bottom: none; }
         .menu-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .menu-item:hover:not(.active) {
-            background: #f8f9fa;
-            padding-left: 35px;
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-weight: bold;
         }
         .content-section {
             display: none;
-            background: white;
+            background: rgba(255,255,255,0.1);
             border-radius: 28px;
             padding: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
             opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
-            margin-bottom: 30px;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
         .content-section.active {
             display: block;
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1);
         }
         .content-section h2 {
-            margin-top: 0;
-            color: #764ba2;
-            font-size: 28px;
-            margin-bottom: 20px;
             text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         /* Календар */
         #calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
         }
         .day-header {
             text-align: center;
             font-weight: bold;
-            color: #764ba2;
+            opacity: 0.8;
             padding: 10px;
         }
         .day {
             aspect-ratio: 1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #f8f9fa;
-            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
-        .day:hover { background: #e9ecef; }
+        .day:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .day.has-lesson {
-            background: #d4edda;
-            border: 3px solid #28a745;
+            background: rgba(40,167,69,0.3);
+            border: 2px solid #28a745;
         }
         .day.today {
             border: 3px solid #ff512f;
+            animation: glow 2s infinite alternate;
         }
-        .day-number {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .day-coins {
-            font-size: 14px;
-            color: #28a745;
-            margin-top: 4px;
-        }
+        @keyframes glow { from { box-shadow: 0 0 10px #ff512f; } to { box-shadow: 0 0 20px #ff512f; } }
+        .day-number { font-size: 20px; font-weight: bold; }
+        .day-coins { font-size: 14px; margin-top: 6px; color: #a0ffa0; }
 
         /* Магазин */
         .shop-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
         }
         .shop-item {
-            background: #f8f9fa;
-            border-radius: 16px;
-            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: transform 0.4s;
         }
-        .shop-item:hover { transform: translateY(-5px); }
+        .shop-item:hover { transform: translateY(-10px) scale(1.05); }
         .shop-item img {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             object-fit: contain;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            border-radius: 16px;
         }
-        .shop-item-name {
-            font-weight: bold;
-            margin: 10px 0 5px;
-        }
-        .shop-item-price {
-            color: #ff512f;
-            font-weight: bold;
-            font-size: 18px;
-        }
+        .shop-item-name { font-weight: bold; margin: 10px 0; }
+        .shop-item-price { color: #ffeb3b; font-size: 20px; font-weight: bold; }
         .buy-btn {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #28a745;
+            margin-top: 15px;
+            padding: 12px;
+            width: 100%;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
             border: none;
-            border-radius: 20px;
+            border-radius: 50px;
             cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
         }
         .buy-btn:disabled {
-            background: #ccc;
+            background: #666;
             cursor: not-allowed;
         }
+        .buy-btn:hover:not(:disabled) { transform: scale(1.05); }
         #purchase-message {
-            margin-top: 20px;
+            margin-top: 25px;
             text-align: center;
+            font-size: 18px;
             font-weight: bold;
-            color: #28a745;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="avatar-bg">
-                <div class="avatar-wrapper">
+            <div class="avatar-wrapper">
+                <div class="avatar-ring">
                     <img id="avatar" class="avatar" src="" alt="Avatar">
-                    <div class="change-avatar-btn" onclick="changeAvatar()">+</div>
                 </div>
+                <div class="change-avatar-btn" onclick="changeAvatar()">+</div>
             </div>
             <div class="name" id="user-name">Завантаження...</div>
             <div class="role">Учень</div>
@@ -262,7 +262,7 @@
         <div id="calendar-section" class="content-section active">
             <h2>Календар уроків</h2>
             <div id="calendar"></div>
-            <div id="lesson-details" style="margin-top: 30px; text-align: center; font-size: 18px;"></div>
+            <div id="lesson-details" style="margin-top: 40px; text-align: center; font-size: 18px; opacity: 0.9;"></div>
         </div>
 
         <!-- Магазин -->
@@ -275,7 +275,7 @@
         <!-- Профіль -->
         <div id="profile-section" class="content-section">
             <h2>Мій профіль</h2>
-            <p style="text-align: center; font-size: 18px;">Тут буде додаткова інформація: статистика, досягнення, рівень англійської тощо.</p>
+            <p style="text-align: center; font-size: 18px; opacity: 0.9;">Тут буде статистика, досягнення та інша інформація про твій прогрес.</p>
         </div>
     </div>
 
@@ -284,11 +284,16 @@
         tg.ready();
         tg.expand();
 
+        const defaultAvatarSVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="50" fill="#444"/>
+            <circle cx="50" cy="35" r="15" fill="#666"/>
+            <path d="M25 70 Q50 90 75 70" stroke="#666" stroke-width="10" fill="none"/>
+        </svg>`;
+
         let userData = {};
         let lessonsData = [];
         let shopItems = [];
 
-        // Завантаження даних користувача
         async function loadUserData() {
             const response = await fetch('/get_user_data', {
                 method: 'POST',
@@ -304,8 +309,7 @@
             if (userData.avatar_url) {
                 avatarImg.src = userData.avatar_url + '?t=' + Date.now();
             } else {
-                avatarImg.classList.add('avatar-default');
-                avatarImg.textContent = (userData.name || '?')[0].toUpperCase();
+                avatarImg.src = 'data:image/svg+xml;base64,' + btoa(defaultAvatarSVG);
             }
 
             await loadLessons();
@@ -314,11 +318,10 @@
             renderShop();
         }
 
-        // Зміна аватарки
         function changeAvatar() {
             tg.showPopup({
                 title: 'Змінити аватарку',
-                message: 'Надішліть нове фото',
+                message: 'Надішліть нове фото профілю',
                 buttons: [{ type: 'default', text: 'OK' }]
             });
 
@@ -332,9 +335,7 @@
                     });
                     const result = await response.json();
                     if (result.success) {
-                        const avatarImg = document.getElementById('avatar');
-                        avatarImg.src = result.avatar_url + '?t=' + Date.now();
-                        avatarImg.classList.remove('avatar-default');
+                        document.getElementById('avatar').src = result.avatar_url + '?t=' + Date.now();
                     } else {
                         tg.showPopup({ title: 'Помилка', message: 'Не вдалося завантажити фото', buttons: [{type: 'ok'}] });
                     }
@@ -342,7 +343,7 @@
             });
         }
 
-        // Календар
+        // Календар (повністю як раніше)
         async function loadLessons() {
             const response = await fetch('/get_lessons', {
                 method: 'POST',
@@ -360,7 +361,6 @@
             const currentMonth = today.getMonth();
             const currentYear = today.getFullYear();
 
-            // Заголовки днів тижня
             ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].forEach(day => {
                 const header = document.createElement('div');
                 header.className = 'day-header';
@@ -368,7 +368,6 @@
                 calendar.appendChild(header);
             });
 
-            // Попередній і поточний місяць
             for (let monthOffset = -1; monthOffset <= 0; monthOffset++) {
                 const date = new Date(currentYear, currentMonth + monthOffset, 1);
                 const year = date.getFullYear();
@@ -376,14 +375,12 @@
 
                 const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const startDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
+                const startDay = firstDay === 0 ? 6 : firstDay - 1;
 
-                // Порожні клітинки перед першим днем
                 for (let i = 0; i < startDay; i++) {
                     calendar.appendChild(document.createElement('div'));
                 }
 
-                // Дні місяця
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dayDate = new Date(year, month, day);
                     const dateStr = dayDate.toISOString().split('T')[0];
@@ -426,7 +423,7 @@
             }
         }
 
-        // Магазин
+        // Магазин (повністю як раніше)
         async function loadShop() {
             const response = await fetch('/get_shop_items', {
                 method: 'POST',
@@ -445,7 +442,7 @@
                 div.className = 'shop-item';
 
                 div.innerHTML = `
-                    <img src="${item.image || 'https://via.placeholder.com/80'}" alt="${item.name}">
+                    <img src="${item.image || 'https://via.placeholder.com/90'}" alt="${item.name}">
                     <div class="shop-item-name">${item.name}</div>
                     <div class="shop-item-price">${item.price} монет</div>
                     <button class="buy-btn" ${userData.coins < item.price ? 'disabled' : ''}
@@ -467,11 +464,12 @@
                 userData.coins = result.new_balance;
                 document.getElementById('user-coins').textContent = `Монети: ${userData.coins}`;
                 document.getElementById('purchase-message').textContent = 'Успішно придбано!';
+                document.getElementById('purchase-message').style.color = '#a0ffa0';
                 renderShop();
                 setTimeout(() => document.getElementById('purchase-message').textContent = '', 3000);
             } else {
                 document.getElementById('purchase-message').textContent = result.message || 'Помилка покупки';
-                document.getElementById('purchase-message').style.color = '#dc3545';
+                document.getElementById('purchase-message').style.color = '#ff6b6b';
                 setTimeout(() => document.getElementById('purchase-message').textContent = '', 3000);
             }
         }
@@ -490,7 +488,6 @@
             });
         });
 
-        // Старт
         loadUserData();
     </script>
 </body>

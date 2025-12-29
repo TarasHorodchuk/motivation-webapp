@@ -3,97 +3,43 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   margin: 0;
-  padding: 20px;
+  padding: 10px;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .container {
-  max-width: 500px;
+  max-width: 480px;
   margin: 0 auto;
+  padding: 10px;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  padding: 25px;
-  margin: 20px 0;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  padding: 20px;
+  margin: 15px 0;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 
 h1 {
-  font-size: 2.2em;
+  font-size: 2em;
   margin: 0 0 10px 0;
   text-align: center;
 }
 
 h2 {
-  font-size: 1.6em;
+  font-size: 1.5em;
   margin: 0 0 15px 0;
   text-align: center;
 }
 
 .balance {
-  font-size: 3.5em;
+  font-size: 3em;
   font-weight: bold;
   text-align: center;
   margin: 20px 0;
-}
-
-/* Календар */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.calendar-day {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-size: 1.1em;
-  transition: all 0.3s;
-}
-
-.calendar-day.empty {
-  background: transparent;
-}
-
-.calendar-day.lesson {
-  background: #4CAF50;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
-}
-
-.calendar-day.lesson:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
-}
-
-.calendar-day.other {
-  color: #888;
-}
-
-.calendar-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  text-align: center;
-}
-
-#day-details {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 15px;
-  margin-top: 20px;
-  min-height: 100px;
 }
 
 .btn {
@@ -110,6 +56,109 @@ h2 {
   width: 100%;
 }
 
-.btn:hover {
-  transform: translateY(-3px);
+.btn:active {
+  transform: translateY(2px);
+}
+
+/* Календар — адаптивний */
+#calendar-container {
+  margin: 20px 0;
+}
+
+.month-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.month-title {
+  font-size: 1.4em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 1.1em;
+  transition: all 0.3s ease;
+}
+
+.calendar-day.empty {
+  background: transparent;
+}
+
+.calendar-day.lesson {
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+  cursor: pointer;
+}
+
+.calendar-day.lesson:active {
+  transform: scale(0.95);
+}
+
+.calendar-day.other {
+  color: #888;
+}
+
+/* Деталі за день */
+#day-details {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  margin-top: 20px;
+  min-height: 100px;
+  line-height: 1.6;
+  font-size: 1.1em;
+}
+
+.loading {
+  font-size: 1.5em;
+  text-align: center;
+  margin-top: 100px;
+}
+
+/* Адаптація під смартфон */
+@media (max-width: 480px) {
+  .container {
+    padding: 5px;
+  }
+  .card {
+    padding: 15px;
+  }
+  h1 {
+    font-size: 1.8em;
+  }
+  .balance {
+    font-size: 2.5em;
+  }
+  .calendar-day {
+    height: 40px;
+    font-size: 1em;
+  }
 }

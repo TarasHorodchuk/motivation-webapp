@@ -41,7 +41,7 @@
     tg.expand();
     tg.ready();
 
-    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← твій ngrok URL
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← оновлюй свій ngrok URL
 
     async function apiRequest(endpoint) {
       try {
@@ -87,104 +87,104 @@
 
       const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпня", "вересня", "жовтень", "листопад", "грудня"];
 
-    const navDiv = document.createElement("div");
-    navDiv.style.display = "flex";
-    navDiv.style.justifyContent = "space-between";
-    navDiv.style.marginBottom = "15px";
+      const navDiv = document.createElement("div");
+      navDiv.style.display = "flex";
+      navDiv.style.justifyContent = "space-between";
+      navDiv.style.marginBottom = "15px";
 
-    const prevButton = document.createElement("button");
-    prevButton.textContent = "←";
-    prevButton.onclick = () => {
-      currentMonth--;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-      drawMonth(currentYear, currentMonth);
-    };
+      const prevButton = document.createElement("button");
+      prevButton.textContent = "←";
+      prevButton.onclick = () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        drawMonth(currentYear, currentMonth);
+      };
 
-    const nextButton = document.createElement("button");
-    nextButton.textContent = "→";
-    nextButton.onclick = () => {
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-      drawMonth(currentYear, currentMonth);
-    };
+      const nextButton = document.createElement("button");
+      nextButton.textContent = "→";
+      nextButton.onclick = () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        drawMonth(currentYear, currentMonth);
+      };
 
-    const title = document.createElement("h3");
-    title.id = "calendar-title";
+      const title = document.createElement("h3");
+      title.id = "calendar-title";
 
-    navDiv.appendChild(prevButton);
-    navDiv.appendChild(title);
-    navDiv.appendChild(nextButton);
+      navDiv.appendChild(prevButton);
+      navDiv.appendChild(title);
+      navDiv.appendChild(nextButton);
 
-    container.appendChild(navDiv);
+      container.appendChild(navDiv);
 
-    const div = document.createElement("div");
-    div.className = "month-card";
-    container.appendChild(div);
+      const div = document.createElement("div");
+      div.className = "month-card";
+      container.appendChild(div);
 
-    function drawMonth(year, month) {
-      title.textContent = `${monthsUa[month]} ${year}`;
+      function drawMonth(year, month) {
+        title.textContent = `${monthsUa[month]} ${year}`;
 
-      div.style.opacity = "0";
-      div.style.transition = "opacity 0.3s";
-      div.innerHTML = "";
+        div.style.opacity = "0";
+        div.style.transition = "opacity 0.3s";
+        div.innerHTML = "";
 
-      const headerDiv = document.createElement("div");
-      headerDiv.className = "calendar-header";
-      for (const d of ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]) {
-        const span = document.createElement("span");
-        span.textContent = d;
-        headerDiv.appendChild(span);
-      }
-      div.appendChild(headerDiv);
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "calendar-header";
+        for (const d of ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]) {
+          const span = document.createElement("span");
+          span.textContent = d;
+          headerDiv.appendChild(span);
+        }
+        div.appendChild(headerDiv);
 
-      const grid = document.createElement("div");
-      grid.className = "calendar-grid";
+        const grid = document.createElement("div");
+        grid.className = "calendar-grid";
 
-      const firstDay = new Date(year, month, 1).getDay();
-      const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-      // Порожні клітинки
-      for (let i = 0; i < adjustedFirstDay; i++) {
-        const empty = document.createElement("div");
-        empty.className = "calendar-day empty";
-        grid.appendChild(empty);
-      }
-
-      // Дні місяця
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.className = "calendar-day";
-
-        const dayDate = new Date(year, month, day);
-        const dayStr = dayDate.toISOString().slice(0, 10);
-
-        if (lessonDates.includes(dayStr)) {
-          dayDiv.className += " lesson";
-          dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
-        } else {
-          dayDiv.className += " other";
+        // Порожні клітинки
+        for (let i = 0; i < adjustedFirstDay; i++) {
+          const empty = document.createElement("div");
+          empty.className = "calendar-day empty";
+          grid.appendChild(empty);
         }
 
-        dayDiv.textContent = day;
-        grid.appendChild(dayDiv);
+        // Дні місяця
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "calendar-day";
+
+          // ВИПРАВЛЕНО: надійно формуємо YYYY-MM-DD без часового поясу
+          const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+          if (lessonDates.includes(dayStr)) {
+            dayDiv.className += " lesson";
+            dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
+          } else {
+            dayDiv.className += " other";
+          }
+
+          dayDiv.textContent = day;
+          grid.appendChild(dayDiv);
+        }
+
+        div.appendChild(grid);
+
+        setTimeout(() => {
+          div.style.opacity = "1";
+        }, 100);
       }
 
-      div.appendChild(grid);
-
-      setTimeout(() => {
-        div.style.opacity = "1";
-      }, 100);
+      drawMonth(currentYear, currentMonth);
     }
-
-    drawMonth(currentYear, currentMonth);
-  }
 
     function showDayDetail(dayStr, details) {
       if (!details || details.total === 0) {
@@ -199,6 +199,15 @@
       }
 
       document.getElementById("day-details").innerHTML = text;
+    }
+
+    // Заглушки для магазину (поки що)
+    function buyBonus(bonus) {
+      tg.showAlert(`Куплено +${bonus} бал(и) до оцінки (функція в розробці)`);
+    }
+
+    function buyRemoveWarning() {
+      tg.showAlert("Зауваження знято (функція в розробці)");
     }
 
     tg.MainButton.setText("Оновити").show();

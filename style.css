@@ -3,37 +3,41 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   margin: 0;
-  padding: 0;
+  padding: 20px;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .container {
-  max-width: 400px;
-  width: 100%;
-  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 25px;
-  margin: 15px 0;
+  margin: 20px 0;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 
 h1 {
   font-size: 2.2em;
   margin: 0 0 10px 0;
+  text-align: center;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+h2 {
+  font-size: 1.6em;
+  margin: 0 0 15px 0;
+  text-align: center;
 }
 
 .balance {
   font-size: 3.5em;
   font-weight: bold;
+  text-align: center;
   margin: 20px 0;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
@@ -49,7 +53,6 @@ h1 {
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   transition: transform 0.2s;
-  display: block;
   width: 100%;
   text-align: center;
 }
@@ -58,22 +61,68 @@ h1 {
   transform: translateY(-2px);
 }
 
+/* Стилі для календаря */
+#calendar-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+#calendar-container th {
+  padding: 10px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#calendar-container td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: 50px;
+  vertical-align: middle;
+}
+
+#calendar-container td button {
+  width: 100%;
+  height: 100%;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#calendar-container td button:hover {
+  background: #45a049;
+}
+
+#calendar-container td:empty {
+  background: transparent;
+}
+
+#calendar-container .no-lesson {
+  color: #888;
+}
+
+/* Деталі за день */
+#day-details {
+  min-height: 100px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin-top: 10px;
+}
+
+/* Загальні */
+p {
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
 .loading {
   font-size: 1.5em;
-  margin-top: 100px;
   text-align: center;
-}
-
-#calendar button {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
-  padding: 10px;
-  margin: 5px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-#calendar button:hover {
-  background: rgba(255,255,255,0.3);
+  margin-top: 100px;
 }

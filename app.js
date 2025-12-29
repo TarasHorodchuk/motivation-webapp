@@ -53,70 +53,55 @@ function renderCalendar(lessonDates, dailyDetails) {
   ];
 
   const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
+  const daysHeader = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
 
   months.forEach(m => {
     const div = document.createElement("div");
     div.className = "card";
-    div.style.marginBottom = "20px";
 
     div.innerHTML = `<h3>${monthsUa[m.month]} ${m.year}</h3>`;
 
-    const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-
-    const header = table.insertRow();
-    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
-      const th = document.createElement("th");
-      th.textContent = d;
-      th.style.padding = "10px";
-      th.style.textAlign = "center";
-      header.appendChild(th);
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "calendar-header";
+    daysHeader.forEach(d => {
+      const span = document.createElement("span");
+      span.textContent = d;
+      headerDiv.appendChild(span);
     });
+    div.appendChild(headerDiv);
+
+    const grid = document.createElement("div");
+    grid.className = "calendar-grid";
 
     const firstDay = new Date(m.year, m.month, 1).getDay();
     const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
 
-    let row = table.insertRow();
-    let dayCount = 1;
-
+    // Порожні клітинки перед першим днем
     for (let i = 1; i < (firstDay === 0 ? 7 : firstDay); i++) {
-      row.insertCell();
+      const empty = document.createElement("div");
+      empty.className = "calendar-day empty";
+      grid.appendChild(empty);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const cell = row.insertCell();
-      cell.style.padding = "10px";
-      cell.style.textAlign = "center";
-      cell.style.border = "1px solid rgba(255,255,255,0.2)";
-      cell.style.height = "50px";
+      const dayDiv = document.createElement("div");
+      dayDiv.className = "calendar-day";
 
       const dayDate = new Date(m.year, m.month, day);
       const dayStr = dayDate.toISOString().slice(0, 10);
 
-      if (lessonDates && lessonDates.includes(dayStr)) {
-        const button = document.createElement("button");
-        button.textContent = day;
-        button.style.background = "#4CAF50";
-        button.style.color = "white";
-        button.style.border = "none";
-        button.style.padding = "10px";
-        button.style.borderRadius = "8px";
-        button.style.width = "100%";
-        button.style.cursor = "pointer";
-        button.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
-        cell.appendChild(button);
+      if (lessonDates.includes(dayStr)) {
+        dayDiv.className += " lesson";
+        dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
       } else {
-        cell.textContent = day;
-        cell.style.color = "#888";
+        dayDiv.className += " other";
       }
 
-      if ((firstDay === 0 ? 7 : firstDay) + day - 1 % 7 === 0 && day < daysInMonth) {
-        row = table.insertRow();
-      }
+      dayDiv.textContent = day;
+      grid.appendChild(dayDiv);
     }
 
-    div.appendChild(table);
+    div.appendChild(grid);
     container.appendChild(div);
   });
 }

@@ -58,100 +58,118 @@
     }
 
     async function loadProfile() {
-      const data = await apiRequest('/api/student/profile');
+  const data = await apiRequest('/api/student/profile');
 
-      if (data.error) {
-        document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
-        return;
+  if (data.error) {
+    document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
+    return;
+  }
+
+  document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
+  document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+  document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+
+  const subjectsDiv = document.getElementById("subjects-balance");
+  subjectsDiv.innerHTML = data.subjects.map(s => `
+    <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+  `).join('');
+
+  renderCalendar(data.lesson_dates, data.daily_details);
+}
+
+function renderCalendar(lessonDates, dailyDetails) {
+  const container = document.getElementById("calendar-container");
+  container.innerHTML = "";
+
+  const today = new Date();
+  const months = [
+    { year: today.getFullYear(), month: today.getMonth() },
+    { year: today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear(), month: today.getMonth() === 0 ? 11 : today.getMonth() - 1 }
+  ];
+
+  const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
+
+  months.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "month-card";
+
+    div.innerHTML = `<h3>${monthsUa[m.month]} ${m.year}</h3>`;
+
+    const table = document.createElement("table");
+    table.className = "calendar-table";
+
+    // Заголовок днів тижня
+    const header = table.insertRow();
+    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
+      const th = document.createElement("th");
+      th.textContent = d;
+      th.style.padding = "10px";
+      th.style.textAlign = "center";
+      th.style.fontWeight = "bold";
+      th.style.background = "rgba(255,255,255,0.1)";
+      header.appendChild(th);
+    });
+
+    // Перший день місяця
+    const firstDay = new Date(m.year, m.month, 1).getDay(); // 0 = неділя
+    const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
+    const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
+
+    let row = table.insertRow();
+
+    // Порожні клітинки перед першим днем
+    for (let i = 0; i < adjustedFirstDay; i++) {
+      const cell = row.insertCell();
+      cell.className = "calendar-day empty";
+    }
+
+    // Дні місяця
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cell = row.insertCell();
+      cell.className = "calendar-day";
+
+      const dayDate = new Date(m.year, m.month, day);
+      const dayStr = dayDate.toISOString().slice(0, 10);
+
+      if (lessonDates.includes(dayStr)) {
+        cell.className += " lesson";
+        cell.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
+      } else {
+        cell.className += " other";
       }
 
-      document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
-      document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-      document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+      cell.textContent = day;
 
-      const subjectsDiv = document.getElementById("subjects-balance");
-      subjectsDiv.innerHTML = data.subjects.map(s => `
-        <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
-      `).join('');
-
-      renderCalendar(data.calendar);  // Оновлений виклик
+      // Новий рядок після неділі
+      if ((adjustedFirstDay + day) % 7 === 0 && day < daysInMonth) {
+        row = table.insertRow();
+      }
     }
 
-    function renderCalendar(calendarData) {
-      const container = document.getElementById("calendar-container");
-      container.innerHTML = "";
+    div.appendChild(table);
+    container.appendChild(div);
+  });
+}
 
-      const today = new Date();
-      const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень", "липень", "серпня", "вересня", "жовтень", "листопад", "грудень"];
-      const months = [
-        { year: today.getFullYear(), month: today.getMonth() },
-        { year: today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear(), month: today.getMonth() === 0 ? 11 : today.getMonth() - 1 }
-      ];
+function showDayDetail(dayStr, details) {
+  if (!details) {
+    document.getElementById("day-details").innerHTML = "За цю дату немає нарахувань.";
+    return;
+  }
 
-      months.forEach((m, index) => {
-        const div = document.createElement("div");
-        div.className = "month-card";
+  const monthsUa = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
+  const dayObj = new Date(dayStr);
+  const dayFormatted = `${dayObj.getDate()} ${monthsUa[dayObj.getMonth()]} ${dayObj.getFullYear()}`;
+  const dayOfWeek = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота", "неділя"][dayObj.getDay()];
 
-        const title = document.createElement("h3");
-        title.textContent = `${monthsUa[m.month]} ${m.year}`;
-        title.onclick = () => div.classList.toggle("collapsed");
-        title.style.cursor = "pointer";
-        div.appendChild(title);
+  let text = `<strong>${dayFormatted} (${dayOfWeek})</strong><br><br>`;
+  text += `Сумарно: ${details.total} 🪙<br><br>`;
+  for (let crit of details.criteria) {
+    text += `✓ ${crit.criterion} (+${crit.coins} монет)<br>`;
+  }
 
-        const table = document.createElement("table");
-        table.className = "calendar-table";
-
-        const header = table.insertRow();
-        ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
-          const th = header.insertCell();
-          th.textContent = d;
-          th.className = "calendar-header";
-        });
-
-        const firstDay = new Date(m.year, m.month, 1).getDay();
-        const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
-
-        let row = table.insertRow();
-
-        for (let i = 1; i < (firstDay === 0 ? 7 : firstDay); i++) {
-          row.insertCell().className = "calendar-day empty";
-        }
-
-        for (let day = 1; day <= daysInMonth; day++) {
-          const cell = row.insertCell();
-          cell.className = "calendar-day";
-          const dayStr = new Date(m.year, m.month, day).toISOString().slice(0, 10);
-          if (calendarData.some(c => c.date === dayStr)) {
-            cell.className += " lesson";
-            cell.onclick = () => showDayDetail(dayStr, calendarData);
-          } else {
-            cell.className += " other";
-          }
-
-          cell.textContent = day;
-
-          if ((firstDay === 0 ? 7 : firstDay) + day - 1 % 7 === 0 && day < daysInMonth) {
-            row = table.insertRow();
-          }
-        }
-
-        div.appendChild(table);
-        container.appendChild(div);
-      });
-    }
-
-    function showDayDetail(dayStr, calendarData) {
-      const dayData = calendarData.filter(c => c.date === dayStr);
-      let text = `<strong>${dayStr}</strong><br><br>`;
-      let total = 0;
-      dayData.forEach(d => {
-        text += `✓ ${d.action} (+${d.amount} монет)<br>`;
-        total += d.amount;
-      });
-      text += `<br>Сумарно: ${total} 🪙`;
-
-      document.getElementById("day-details").innerHTML = text;
-    }
+  document.getElementById("day-details").innerHTML = text;
+}
 
     tg.MainButton.setText("Оновити").show();
     tg.MainButton.onClick(loadProfile);

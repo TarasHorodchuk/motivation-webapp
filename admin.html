@@ -14,22 +14,11 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          animation: {
-            'fade-in': 'fadeIn 0.6s ease-out forwards',
-            'slide-up': 'slideUp 0.5s ease-out forwards',
-          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          animation: { 'fade-in': 'fadeIn 0.6s ease-out forwards', 'slide-up': 'slideUp 0.5s ease-out forwards' },
           keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0', transform: 'translateY(20px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' }
-            },
-            slideUp: {
-              '0%': { opacity: '0', transform: 'translateY(40px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' }
-            }
+            fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(40px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
           }
         }
       }
@@ -67,13 +56,7 @@
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
       transition: all 0.4s ease;
     }
-    .glass:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
-    }
-    .dropdown {
-      animation: slideUp 0.4s ease-out;
-    }
+    .glass:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4); }
     .btn-primary {
       @apply bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-full transition transform hover:scale-105 shadow-md;
     }
@@ -243,7 +226,7 @@
       </div>
     </div>
 
-    <!-- 4. Почати пару -->
+    <!-- 4. Почати пару — з зеленими галочками та динамічним оновленням іконок -->
     <div x-show="activeTab === 'lesson'" class="glass p-8 animate-fade-in">
       <h2 class="text-2xl font-semibold mb-6">Почати пару</h2>
 
@@ -281,14 +264,14 @@
                     <input
                       type="checkbox"
                       :value="student.id"
-                      @change="toggleStudent(criterion.id, student.id, $event.target.checked)"
+                      @change="toggleStudent(criterion.id, student.id, $event.target.checked); $nextTick(() => lucide.createIcons())"
                       :checked="isSelected(criterion.id, student.id)"
                       class="absolute opacity-0 w-0 h-0"
                     >
                     <div class="w-8 h-8 rounded-xl border-2 border-white border-opacity-40 flex items-center justify-center transition-all duration-300 group-hover:border-opacity-70 bg-white bg-opacity-5">
                       <i data-lucide="check"
-                         class="w-6 h-6 text-green-400 scale-0 transition-transform duration-300"
-                         :class="{ 'scale-100': isSelected(criterion.id, student.id) }"></i>
+                         class="w-6 h-6 text-green-400 transition-all duration-300"
+                         :class="{ 'opacity-100 scale-100': isSelected(criterion.id, student.id), 'opacity-0 scale-0': !isSelected(criterion.id, student.id) }"></i>
                     </div>
                   </div>
 

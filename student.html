@@ -1,277 +1,497 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мій профіль</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мій профіль</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-top: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .avatar-bg {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: 0 auto 25px;
+            padding: 8px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .avatar {
+            width: 134px;
+            height: 134px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+        }
+        .avatar-default {
+            background: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            color: white;
+            font-weight: bold;
+        }
+        .change-avatar-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            cursor: pointer;
+        }
+        .name {
+            font-size: 34px;
+            font-weight: bold;
+            color: white;
+            margin: 10px 0 5px;
+            text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+        .role {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+        }
+        .coins {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            background: rgba(255,255,255,0.25);
+            padding: 10px 25px;
+            border-radius: 30px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .menu {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        .menu-item {
+            padding: 24px 30px;
+            font-size: 20px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .menu-item:hover:not(.active) {
+            background: #f8f9fa;
+            padding-left: 35px;
+        }
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+            margin-bottom: 30px;
+        }
+        .content-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .content-section h2 {
+            margin-top: 0;
+            color: #764ba2;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Календар */
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #764ba2;
+            padding: 10px;
+        }
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .day:hover { background: #e9ecef; }
+        .day.has-lesson {
+            background: #d4edda;
+            border: 3px solid #28a745;
+        }
+        .day.today {
+            border: 3px solid #ff512f;
+        }
+        .day-number {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .day-coins {
+            font-size: 14px;
+            color: #28a745;
+            margin-top: 4px;
+        }
+
+        /* Магазин */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .shop-item {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .shop-item:hover { transform: translateY(-5px); }
+        .shop-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        .shop-item-name {
+            font-weight: bold;
+            margin: 10px 0 5px;
+        }
+        .shop-item-price {
+            color: #ff512f;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .buy-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #purchase-message {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1 id="greeting">Завантаження...</h1>
-    <p id="class-info"></p>
-    <div class="balance" id="total-balance">0 🪙</div>
+    <div class="container">
+        <div class="header">
+            <div class="avatar-bg">
+                <div class="avatar-wrapper">
+                    <img id="avatar" class="avatar" src="" alt="Avatar">
+                    <div class="change-avatar-btn" onclick="changeAvatar()">+</div>
+                </div>
+            </div>
+            <div class="name" id="user-name">Завантаження...</div>
+            <div class="role">Учень</div>
+            <div class="coins" id="user-coins">Монети: 0</div>
+        </div>
 
-    <div class="card">
-      <h2>Баланс по предметах</h2>
-      <div id="subjects-balance">Завантажуємо...</div>
+        <div class="menu">
+            <div class="menu-item active" data-section="calendar">Календар</div>
+            <div class="menu-item" data-section="shop">Магазин</div>
+            <div class="menu-item" data-section="profile">Профіль</div>
+        </div>
+
+        <!-- Календар -->
+        <div id="calendar-section" class="content-section active">
+            <h2>Календар уроків</h2>
+            <div id="calendar"></div>
+            <div id="lesson-details" style="margin-top: 30px; text-align: center; font-size: 18px;"></div>
+        </div>
+
+        <!-- Магазин -->
+        <div id="shop-section" class="content-section">
+            <h2>Магазин бонусів</h2>
+            <div class="shop-grid" id="shop-items"></div>
+            <div id="purchase-message"></div>
+        </div>
+
+        <!-- Профіль -->
+        <div id="profile-section" class="content-section">
+            <h2>Мій профіль</h2>
+            <p style="text-align: center; font-size: 18px;">Тут буде додаткова інформація: статистика, досягнення, рівень англійської тощо.</p>
+        </div>
     </div>
 
-    <div class="card">
-      <h2>Календар нарахувань</h2>
-      <div id="calendar-container">Завантажуємо календар...</div>
-    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-    <div class="card">
-      <h2>Деталі за день</h2>
-      <div id="day-details">Обери дату в календарі</div>
-    </div>
+        let userData = {};
+        let lessonsData = [];
+        let shopItems = [];
 
-    <div class="card">
-      <h2>Магазин бонусів</h2>
-      <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
-      <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
-      <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
-    </div>
-  </div>
+        // Завантаження даних користувача
+        async function loadUserData() {
+            const response = await fetch('/get_user_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            userData = await response.json();
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
+            document.getElementById('user-name').textContent = userData.name || 'Учень';
+            document.getElementById('user-coins').textContent = `Монети: ${userData.coins || 0}`;
 
-    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";  // ← оновлюй свій ngrok URL
+            const avatarImg = document.getElementById('avatar');
+            if (userData.avatar_url) {
+                avatarImg.src = userData.avatar_url + '?t=' + Date.now();
+            } else {
+                avatarImg.classList.add('avatar-default');
+                avatarImg.textContent = (userData.name || '?')[0].toUpperCase();
+            }
 
-    async function apiRequest(endpoint) {
-      try {
-        const response = await fetch(`${BOT_API_URL}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData })
+            await loadLessons();
+            await loadShop();
+            renderCalendar();
+            renderShop();
+        }
+
+        // Зміна аватарки
+        function changeAvatar() {
+            tg.showPopup({
+                title: 'Змінити аватарку',
+                message: 'Надішліть нове фото',
+                buttons: [{ type: 'default', text: 'OK' }]
+            });
+
+            tg.requestFile({
+                types: ['photo'],
+                callback: async (file) => {
+                    const response = await fetch('/upload_avatar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ initData: tg.initData, file_id: file.file_id })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        const avatarImg = document.getElementById('avatar');
+                        avatarImg.src = result.avatar_url + '?t=' + Date.now();
+                        avatarImg.classList.remove('avatar-default');
+                    } else {
+                        tg.showPopup({ title: 'Помилка', message: 'Не вдалося завантажити фото', buttons: [{type: 'ok'}] });
+                    }
+                }
+            });
+        }
+
+        // Календар
+        async function loadLessons() {
+            const response = await fetch('/get_lessons', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            lessonsData = await response.json();
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+
+            // Заголовки днів тижня
+            ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+
+            // Попередній і поточний місяць
+            for (let monthOffset = -1; monthOffset <= 0; monthOffset++) {
+                const date = new Date(currentYear, currentMonth + monthOffset, 1);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const startDay = firstDay === 0 ? 6 : firstDay - 1; // Пн = 0
+
+                // Порожні клітинки перед першим днем
+                for (let i = 0; i < startDay; i++) {
+                    calendar.appendChild(document.createElement('div'));
+                }
+
+                // Дні місяця
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayDate = new Date(year, month, day);
+                    const dateStr = dayDate.toISOString().split('T')[0];
+
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day';
+                    if (dayDate.toDateString() === today.toDateString()) dayDiv.classList.add('today');
+
+                    const lesson = lessonsData.find(l => l.date === dateStr);
+                    if (lesson) {
+                        dayDiv.classList.add('has-lesson');
+                        const coinsSpan = document.createElement('div');
+                        coinsSpan.className = 'day-coins';
+                        coinsSpan.textContent = `+${lesson.coins} монет`;
+                        dayDiv.appendChild(coinsSpan);
+                    }
+
+                    const numberSpan = document.createElement('div');
+                    numberSpan.className = 'day-number';
+                    numberSpan.textContent = day;
+                    dayDiv.prepend(numberSpan);
+
+                    dayDiv.onclick = () => showLessonDetails(dateStr, lesson);
+                    calendar.appendChild(dayDiv);
+                }
+            }
+        }
+
+        function showLessonDetails(dateStr, lesson) {
+            const details = document.getElementById('lesson-details');
+            if (lesson) {
+                details.innerHTML = `
+                    <p><strong>Дата:</strong> ${new Date(dateStr).toLocaleDateString('uk-UA')}</p>
+                    <p><strong>Оцінка:</strong> ${lesson.rating || 'Не оцінено'}</p>
+                    <p><strong>Монети отримано:</strong> +${lesson.coins}</p>
+                    <p><strong>Коментар:</strong> ${lesson.comment || 'Немає'}</p>
+                `;
+            } else {
+                details.innerHTML = `<p>На ${new Date(dateStr).toLocaleDateString('uk-UA')} уроку не було.</p>`;
+            }
+        }
+
+        // Магазин
+        async function loadShop() {
+            const response = await fetch('/get_shop_items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            shopItems = await response.json();
+        }
+
+        function renderShop() {
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+
+            shopItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+
+                div.innerHTML = `
+                    <img src="${item.image || 'https://via.placeholder.com/80'}" alt="${item.name}">
+                    <div class="shop-item-name">${item.name}</div>
+                    <div class="shop-item-price">${item.price} монет</div>
+                    <button class="buy-btn" ${userData.coins < item.price ? 'disabled' : ''}
+                        onclick="buyItem(${item.id})">Купити</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function buyItem(itemId) {
+            const response = await fetch('/buy_item', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData, item_id: itemId })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                userData.coins = result.new_balance;
+                document.getElementById('user-coins').textContent = `Монети: ${userData.coins}`;
+                document.getElementById('purchase-message').textContent = 'Успішно придбано!';
+                renderShop();
+                setTimeout(() => document.getElementById('purchase-message').textContent = '', 3000);
+            } else {
+                document.getElementById('purchase-message').textContent = result.message || 'Помилка покупки';
+                document.getElementById('purchase-message').style.color = '#dc3545';
+                setTimeout(() => document.getElementById('purchase-message').textContent = '', 3000);
+            }
+        }
+
+        // Перемикання секцій
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                const sectionId = item.dataset.section + '-section';
+                document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+                setTimeout(() => {
+                    document.getElementById(sectionId).classList.add('active');
+                }, 100);
+            });
         });
-        return await response.json();
-      } catch (err) {
-        console.error("API помилка:", err);
-        tg.showAlert("Помилка з'єднання з ботом");
-        return { error: "Помилка з'єднання" };
-      }
-    }
 
-    async function loadProfile() {
-      const data = await apiRequest('/api/student/profile');
-
-      if (data.error) {
-        document.getElementById("calendar-container").innerHTML = `<p style="color:red;">Помилка: ${data.error}</p>`;
-        return;
-      }
-
-      document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
-      document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-      document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
-
-      const subjectsDiv = document.getElementById("subjects-balance");
-      subjectsDiv.innerHTML = data.subjects.map(s => `
-        <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
-      `).join('');
-
-      renderCalendar(data.lesson_dates, data.daily_details);
-    }
-
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-
-    function renderCalendar(lessonDates, dailyDetails) {
-  const container = document.getElementById("calendar-container");
-  container.innerHTML = "";
-
-  const today = new Date();
-  let currentYear = today.getFullYear();
-  let currentMonth = today.getMonth(); // 0-11
-
-  // Обмеження: тільки поточний і попередній місяць
-  const maxYear = today.getFullYear();
-  const maxMonth = today.getMonth();
-
-  let prevMonth = maxMonth - 1;
-  let prevYear = maxYear;
-  if (prevMonth < 0) {
-    prevMonth = 11;
-    prevYear--;
-  }
-  const minYear = prevYear;
-  const minMonth = prevMonth;
-
-  const monthsUa = ["січень", "лютий", "березень", "квітень", "травень", "червень",
-                    "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
-
-  // Навігація
-  const navDiv = document.createElement("div");
-  navDiv.style.display = "flex";
-  navDiv.style.justifyContent = "space-between";
-  navDiv.style.alignItems = "center";
-  navDiv.style.marginBottom = "15px";
-
-  const prevButton = document.createElement("button");
-  prevButton.textContent = "←";
-  prevButton.style.fontSize = "1.5em";
-  prevButton.style.padding = "10px 15px";
-  prevButton.style.opacity = "0.5"; // спочатку неактивна, бо стартуємо з поточного
-
-  const nextButton = document.createElement("button");
-  nextButton.textContent = "→";
-  nextButton.style.fontSize = "1.5em";
-  nextButton.style.padding = "10px 15px";
-  nextButton.style.opacity = "0.5";
-  nextButton.style.cursor = "not-allowed";
-
-  const title = document.createElement("h3");
-  title.textContent = `${monthsUa[currentMonth]} ${currentYear}`;
-  title.style.margin = "0";
-  title.style.textTransform = "capitalize";
-
-  navDiv.appendChild(prevButton);
-  navDiv.appendChild(title);
-  navDiv.appendChild(nextButton);
-  container.appendChild(navDiv);
-
-  const monthCard = document.createElement("div");
-  monthCard.style.opacity = "0";
-  monthCard.style.transition = "opacity 0.3s ease";
-  container.appendChild(monthCard);
-
-  function updateButtons() {
-    // ← активна тільки якщо не в попередньому місяці
-    if (currentYear > minYear || currentMonth > minMonth) {
-      prevButton.style.opacity = "1";
-      prevButton.style.cursor = "pointer";
-      prevButton.disabled = false;
-    } else {
-      prevButton.style.opacity = "0.5";
-      prevButton.style.cursor = "not-allowed";
-      prevButton.disabled = true;
-    }
-
-    // → активна тільки якщо не в поточному місяці
-    if (currentYear < maxYear || currentMonth < maxMonth) {
-      nextButton.style.opacity = "1";
-      nextButton.style.cursor = "pointer";
-      nextButton.disabled = false;
-    } else {
-      nextButton.style.opacity = "0.5";
-      nextButton.style.cursor = "not-allowed";
-      nextButton.disabled = true;
-    }
-  }
-
-  function drawMonth(year, month) {
-    title.textContent = `${monthsUa[month]} ${year}`;
-
-    monthCard.style.opacity = "0";
-    monthCard.innerHTML = "";
-
-    const headerDiv = document.createElement("div");
-    headerDiv.className = "calendar-header";
-    ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].forEach(d => {
-      const span = document.createElement("span");
-      span.textContent = d;
-      headerDiv.appendChild(span);
-    });
-    monthCard.appendChild(headerDiv);
-
-    const grid = document.createElement("div");
-    grid.className = "calendar-grid";
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    for (let i = 0; i < adjustedFirstDay; i++) {
-      const empty = document.createElement("div");
-      empty.className = "calendar-day empty";
-      grid.appendChild(empty);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayDiv = document.createElement("div");
-      dayDiv.className = "calendar-day";
-
-      const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-      if (lessonDates.includes(dayStr)) {
-        dayDiv.className += " lesson";
-        dayDiv.onclick = () => showDayDetail(dayStr, dailyDetails[dayStr]);
-      } else {
-        dayDiv.className += " other";
-      }
-
-      dayDiv.textContent = day;
-      grid.appendChild(dayDiv);
-    }
-
-    monthCard.appendChild(grid);
-
-    setTimeout(() => {
-      monthCard.style.opacity = "1";
-    }, 50);
-
-    updateButtons();
-  }
-
-  // Обробники кнопок
-  prevButton.onclick = () => {
-    if (prevButton.disabled) return;
-
-    currentMonth--;
-    if (currentMonth < 0) {
-      currentMonth = 11;
-      currentYear--;
-    }
-    drawMonth(currentYear, currentMonth);
-  };
-
-  nextButton.onclick = () => {
-    if (nextButton.disabled) return;
-
-    currentMonth++;
-    if (currentMonth > 11) {
-      currentMonth = 0;
-      currentYear++;
-    }
-    drawMonth(currentYear, currentMonth);
-  };
-
-  // Початкове малювання
-  drawMonth(currentYear, currentMonth);
-}
-    function showDayDetail(dayStr, details) {
-      if (!details || details.total === 0) {
-        document.getElementById("day-details").innerHTML = "За цю дату немає нарахувань.";
-        return;
-      }
-
-      let text = `<strong>${dayStr}</strong><br><br>`;
-      text += `Сумарно: ${details.total} 🪙<br><br>`;
-      for (let crit of details.criteria) {
-        text += `✓ ${crit.criterion} (+${crit.coins} монет)<br>`;
-      }
-
-      document.getElementById("day-details").innerHTML = text;
-    }
-
-    // Заглушки для магазину (поки що)
-    function buyBonus(bonus) {
-      tg.showAlert(`Куплено +${bonus} бал(и) до оцінки (функція в розробці)`);
-    }
-
-    function buyRemoveWarning() {
-      tg.showAlert("Зауваження знято (функція в розробці)");
-    }
-
-    tg.MainButton.setText("Оновити").show();
-    tg.MainButton.onClick(loadProfile);
-
-    loadProfile();
-  </script>
+        // Старт
+        loadUserData();
+    </script>
 </body>
 </html>

@@ -9,28 +9,28 @@
 </head>
 <body>
   <div class="container">
-    <h1 id="greeting">Завантаження...</h1>
-
-    <div class="card">
-      <p id="class-info">Клас: завантажується...</p>
+    <div id="loading" class="loading">Завантаження профілю...</div>
+    <div id="profile" style="display:none;">
+      <h1 id="greeting">Привіт!</h1>
+      <p id="class-info"></p>
       <div class="balance" id="total-balance">0 🪙</div>
-    </div>
 
-    <div class="card">
-      <h2>Баланс по предметах</h2>
-      <div id="subjects-balance">Завантажуємо...</div>
-    </div>
+      <div class="card">
+        <h2>Баланс по предметах</h2>
+        <div id="subjects-balance"></div>
+      </div>
 
-    <div class="card">
-      <h2>Календар нарахувань</h2>
-      <div id="calendar">Завантажуємо календар...</div>
-    </div>
+      <div class="card">
+        <h2>Календар нарахувань</h2>
+        <div id="calendar"></div>
+      </div>
 
-    <div class="card">
-      <h2>Магазин бонусів</h2>
-      <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
-      <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
-      <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
+      <div class="card">
+        <h2>Магазин бонусів</h2>
+        <button class="btn" onclick="buyBonus(1)">+1 бал до оцінки (10 монет)</button>
+        <button class="btn" onclick="buyBonus(2)">+2 бали до оцінки (20 монет)</button>
+        <button class="btn" onclick="buyRemoveWarning()">Зняти зауваження (8 монет)</button>
+      </div>
     </div>
   </div>
 
@@ -39,50 +39,64 @@
     tg.expand();
     tg.ready();
 
-    async function loadProfile() {
+    // ТВІЙ NGROK URL (оновлюй після кожного перезапуску ngrok)
+    const BOT_API_URL = "https://alease-budless-castiel.ngrok-free.dev";
+
+    async function apiRequest(endpoint) {
       try {
-        const response = await fetch('/api/student/profile', {
+        const response = await fetch(`${BOT_API_URL}${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ initData: tg.initData })
         });
-        const data = await response.json();
-
-        if (data.error) {
-          tg.showAlert(data.error);
-          return;
-        }
-
-        document.getElementById("greeting").innerText = `Привіт, ${data.first_name}!`;
-        document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
-        document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
-
-        const subjectsDiv = document.getElementById("subjects-balance");
-        subjectsDiv.innerHTML = data.subjects.map(s => `
-          <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
-        `).join('');
-
-        const calendarDiv = document.getElementById("calendar");
-        calendarDiv.innerHTML = data.calendar.map(day => `
-          <p><strong>${day.date}</strong>: ${day.subject} (+${day.total} 🪙)</p>
-        `).join('') || "За цей період уроків ще не було.";
+        return await response.json();
       } catch (err) {
-        tg.showAlert("Помилка завантаження профілю");
+        console.error(err);
+        return { error: "Помилка з'єднання" };
+      }
+    }
+
+    async function loadProfile() {
+      const data = await apiRequest('/api/student/profile');
+
+      if (data.error) {
+        document.getElementById("loading").innerText = "Помилка: " + data.error;
+        return;
+      }
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("profile").style.display = "block";
+
+      document.getElementById("greeting").innerText = `Привіт, ${data.first_name} ${data.last_name}!`;
+      document.getElementById("class-info").innerText = `Клас: ${data.class_name}`;
+      document.getElementById("total-balance").innerText = `${data.total_coins} 🪙`;
+
+      const subjectsDiv = document.getElementById("subjects-balance");
+      subjectsDiv.innerHTML = data.subjects.map(s => `
+        <p><strong>${s.name}:</strong> ${s.coins} 🪙</p>
+      `).join('');
+
+      const calendarDiv = document.getElementById("calendar");
+      if (data.calendar.length === 0) {
+        calendarDiv.innerHTML = "<p>Уроків ще не було</p>";
+      } else {
+        calendarDiv.innerHTML = "<h3>Останні уроки:</h3>" + data.calendar.map(day => `
+          <p><strong>${day.date}</strong>: ${day.subject} (+${day.total} 🪙)</p>
+        `).join('');
       }
     }
 
     function buyBonus(bonus) {
-      tg.showAlert(`Куплено +${bonus} бали (поки тест)`);
-      loadProfile();  // Оновлюємо баланс після покупки
+      tg.showAlert(`Куплено +${bonus} бал(и) (поки тест)`);
     }
 
     function buyRemoveWarning() {
       tg.showAlert("Зауваження знято (поки тест)");
-      loadProfile();
     }
 
-    tg.MainButton.setText("Оновити баланс").show();
+    tg.MainButton.setText("Оновити").show();
     tg.MainButton.onClick(loadProfile);
+
     loadProfile();
   </script>
 </body>
